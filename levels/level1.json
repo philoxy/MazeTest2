@@ -1,27 +1,27 @@
 {    
     "PT0S":{
-        "posx":1,
+        "posx":2,
         "posy":4,
         "sprite":"assets/1-trans.png",
         "objtype":"sprite"
     },
 
     "PT0":{
-        "posx":1,
+        "posx":2,
         "posy":5,
         "sprite":"assets/1-platup.png",
         "objtype":"platform"
     },
     
     "PT1":{
-        "posx":2,
+        "posx":3,
         "posy":4,
         "sprite":"assets/1-trans.png",
         "objtype":"sprite"
     },
 
     "PT1S":{
-        "posx":2,
+        "posx":3,
         "posy":5,
         "sprite":"assets/1-platup.png",
         "objtype":"platform"
@@ -65,6 +65,13 @@
         "posx":4,
         "posy":6,
         "sprite":"assets/1-slopeleft.png",
+        "objtype":"platform"
+    },
+
+    "PT7":{
+        "posx":0,
+        "posy":6,
+        "sprite":"assets/1-platup.png",
         "objtype":"platform"
     }
 }

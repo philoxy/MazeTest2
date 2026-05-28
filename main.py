@@ -51,14 +51,16 @@ def collide():
 	collide_up = False
 	collide_right = False
 	collide_left = False
-	if pressed_keys[pygame.K_DOWN] and player_rect.bottom == test_rect.top:
-		collide_down = True
-	elif pressed_keys[pygame.K_UP] and player_rect.top == test_rect.bottom:
-		collide_up = True
-	elif pressed_keys[pygame.K_RIGHT] and player_rect.right == test_rect.left:
-		collide_right = True
-	elif pressed_keys[pygame.K_LEFT] and player_rect.left == test_rect.right:
-		collide_left = True
+	if test_rect.left - 32 <= player_rect.left <= test_rect.right:
+		if pressed_keys[pygame.K_DOWN] and player_rect.bottom == test_rect.top:
+			collide_down = True
+		if pressed_keys[pygame.K_UP] and player_rect.top == test_rect.bottom:
+			collide_up = True
+	if test_rect.top - 32 <= player_rect.top <= test_rect.bottom:
+		if pressed_keys[pygame.K_RIGHT] and player_rect.right == test_rect.left:
+			collide_right = True
+		if pressed_keys[pygame.K_LEFT] and player_rect.left == test_rect.right:
+			collide_left = True
 
 
 def move():

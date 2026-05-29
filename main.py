@@ -3,6 +3,8 @@ import pygame, sys
 playerx = 60
 playery = 60
 
+pygame.init()
+pygame.font.init()
 screen = pygame.display.set_mode((640, 480))
 player_img1 = pygame.image.load("assets/player.png")
 #setup for animations somehow???
@@ -21,6 +23,10 @@ collide_down = False
 collide_up = False
 collide_right = False
 collide_left = False
+
+#temporary
+my_font = pygame.font.SysFont('Arial', 30)
+texty = my_font.render("shift to run", False, (0, 0, 0))
 
 def loadmap():
 	print("not yet lol")
@@ -41,8 +47,11 @@ def update():
 	#print(playerx)
 	#print(playery)
 	pygame.display.flip()
+	#temporary
+	screen.blit(texty, (100, 100))
 
 def collide():
+	#make this for each rect in the collision map or whatever
 	global collide_down, collide_up, collide_right, collide_left
 	pressed_keys = pygame.key.get_pressed()
 	#print(player_rect)

@@ -1,5 +1,6 @@
-# PlatformerTest
-## screw it its an rpg now
+# MAZETEST 2
+
+the long awaited sequel
 
 ## Python Depencencies
 

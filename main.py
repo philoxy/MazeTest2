@@ -4,8 +4,8 @@ import pygame, sys, csv, os, json
 
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((840, 704))
-player_img1 = pygame.image.load("assets/player.png")
+screen = pygame.display.set_mode((640, 704))
+player_img1 = pygame.image.load("assets/player/player.png")
 #setup for animations somehow???
 #if key is still pressed_keys cycle through frames
 #if key is not pressed_keys set to first frame (standing)
@@ -24,10 +24,12 @@ collide_right = False
 collide_left = False
 offsetX = 0
 offsetY = 0
+win = False
 
 Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()
 Tilegroup_wall = pygame.sprite.Group()
+Tilegroup_exit = pygame.sprite.Group()
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
 class Spritesheet:
@@ -41,7 +43,7 @@ class Spritesheet:
 
     def get_sprite(self, x, y, w, h):
         sprite = pygame.Surface((w, h))
-        sprite.set_colorkey((0,0,0))
+        sprite.set_colorkey((255,0,208))
         sprite.blit(self.sprite_sheet,(0, 0),(x, y, w, h))
         return sprite
 
@@ -57,7 +59,7 @@ class Tile(pygame.sprite.Sprite):
 	def __init__(self, image, x, y, spritesheet):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = spritesheet.parse_sprite(image)
-		self.image.set_colorkey((255, 255, 255))
+		self.image.set_colorkey((255, 0, 208))
 		self.rect = self.image.get_rect()
 		self.rect.x, self.rect.y = x, y
 
@@ -69,7 +71,7 @@ class Tile_NoCol(pygame.sprite.Sprite):
 	def __init__(self, image, x, y, spritesheet):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = spritesheet.parse_sprite(image)
-		self.image.set_colorkey((255, 255, 255))
+		self.image.set_colorkey((255, 0, 208))
 		self.rect = self.image.get_rect()
 		self.rect.x, self.rect.y = x, y
 
@@ -81,7 +83,19 @@ class Tile_Wall(pygame.sprite.Sprite):
 	def __init__(self, image, x, y, spritesheet):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = spritesheet.parse_sprite(image)
-		self.image.set_colorkey((255, 255, 255))
+		self.image.set_colorkey((255, 0, 208))
+		self.rect = self.image.get_rect()
+		self.rect.x, self.rect.y = x, y
+
+
+	def draw(self, surface):
+		surface.blit(self.image, (self.rect.x, self.rect.y))
+
+class Tile_Exit(pygame.sprite.Sprite):
+	def __init__(self, image, x, y, spritesheet):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = spritesheet.parse_sprite(image)
+		self.image.set_colorkey((255, 0, 208))
 		self.rect = self.image.get_rect()
 		self.rect.x, self.rect.y = x, y
 
@@ -95,6 +109,7 @@ class TileMap():
 		self.spritesheet = spritesheet
 		self.tiles = self.load_tiles(filename)
 		self.map_surface = pygame.Surface((self.map_w, self.map_h))
+		#i have NO IDEA how to change the colorkey so you have to use 0, 0, 1 for black in rgb values
 		self.map_surface.set_colorkey((0, 0, 0))
 		self.load_map()
 
@@ -120,8 +135,6 @@ class TileMap():
 		for row in map:
 			x = 0
 			for tile in row:
-				#if tile == "0":
-				#	self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
 				if tile == "0":
 					Temptile = Tile("wall2", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
@@ -134,6 +147,10 @@ class TileMap():
 					Temptile = Tile_NoCol("transparent", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
+				elif tile == "3":
+					Temptile = Tile_Exit("exit", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					tiles.append(Temptile)
+					Tilegroup_exit.add(Temptile)
 				elif tile == "4":
 					Temptile = Tile_Wall("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
@@ -155,7 +172,7 @@ def update():
 	pygame.display.flip()
 
 def collide():
-		global collide_down, collide_up, collide_right, collide_left, playerx, playery
+		global collide_down, collide_up, collide_right, collide_left, playerx, playery, win
 		pressed_keys = pygame.key.get_pressed()
 		collide_down = False
 		collide_up = False
@@ -183,6 +200,9 @@ def collide():
 					collide_right = True
 				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
 					collide_left = True
+		for i in list(Tilegroup_exit.sprites()):
+			if player_rect.colliderect(i.rect):
+				win = True
 
 def move():
 	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY
@@ -204,12 +224,19 @@ def move():
 	offsetX = playerx
 	offsetY = playery
 
-spritesheet = Spritesheet('assets/spritesheet.png')
-map_below = TileMap("levels/level1-back.csv", spritesheet)
-map_above = TileMap("levels/level1-front.csv", spritesheet)
-run = True
+def loadLevel(level_num):
+	global spritesheet, map_below, map_above
+	level_num = str(level_num)
+	spritesheet = Spritesheet('assets/level'+level_num+'/spritesheet.png')
+	map_below = TileMap('levels/level'+level_num+'/back.csv', spritesheet)
+	map_above = TileMap('levels/level'+level_num+'/front.csv', spritesheet)
 
-while run:
+loadLevel(1)
+#spritesheet = Spritesheet('assets/level1/spritesheet.png')
+#map_below = TileMap("levels/level1/back.csv", spritesheet)
+#map_above = TileMap("levels/level1/front.csv", spritesheet)
+
+while win == False:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			sys.exit()
@@ -221,3 +248,4 @@ while run:
 	screen.fill((225, 255, 255))
 	clock.tick(60)
 	update()
+

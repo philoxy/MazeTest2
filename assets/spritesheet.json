@@ -16,6 +16,14 @@
         "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
         "sourceSize": {"w":64,"h":64}
     },
+    "wall3":
+    {
+        "frame": {"x":0,"y":64,"w":64,"h":64},
+        "rotated": false,
+        "trimmed": false,
+        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+        "sourceSize": {"w":64,"h":64}
+    },
     "transparent":
     {
         "frame": {"x":128,"y":0,"w":64,"h":64},

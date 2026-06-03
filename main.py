@@ -2,20 +2,18 @@
 
 import pygame, sys, csv, os, json
 
-playerx = 96
-playery = 96
-
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((840, 712))
+screen = pygame.display.set_mode((840, 704))
 player_img1 = pygame.image.load("assets/player.png")
 #setup for animations somehow???
 #if key is still pressed_keys cycle through frames
 #if key is not pressed_keys set to first frame (standing)
 #wow im so smart this will 100% not work at all
+playerx = 96
+playery = 96
 player_img = player_img1
-player_rect = pygame.Rect(80, 80, 32, 32)
-#test_rect = pygame.Rect(64, 64, 32, 32)
+player_rect = pygame.Rect(playerx, playery, 32, 32)
 icon = player_img1
 pygame.display.set_caption("MAZETEST 2")
 clock = pygame.time.Clock()
@@ -28,8 +26,10 @@ offsetX = 0
 offsetY = 0
 
 Tilegroup = pygame.sprite.Group()
+Tilegroup_nocol = pygame.sprite.Group()
+Tilegroup_wall = pygame.sprite.Group()
 
-#from a tutorial because i hate classes in pygame how the hell do you use them
+# Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
 class Spritesheet:
     def __init__(self, filename):
         self.filename = filename
@@ -65,26 +65,29 @@ class Tile(pygame.sprite.Sprite):
 	def draw(self, surface):
 		surface.blit(self.image, (self.rect.x, self.rect.y))
 
-	def update(self):
-		global collide_down, collide_up, collide_right, collide_left, playerx, playery
-		pressed_keys = pygame.key.get_pressed()
-		collide_down = False
-		collide_up = False
-		collide_right = False
-		collide_left = False
-		#print(self.rect.bottom)
-		#print(player_rect.top)
-		if self.rect.left - 32 <= player_rect.left <= self.rect.right:
-			if pressed_keys[pygame.K_DOWN] and player_rect.bottom == self.rect.top:
-				collide_down = True
-			if pressed_keys[pygame.K_UP] and player_rect.top == self.rect.bottom:
-				collide_up = True
-		if self.rect.top - 32 <= player_rect.top <= self.rect.bottom:
-			if pressed_keys[pygame.K_RIGHT] and player_rect.right == self.rect.left:
-				collide_right = True
-			if pressed_keys[pygame.K_LEFT] and player_rect.left == self.rect.right:
-				collide_left = True
+class Tile_NoCol(pygame.sprite.Sprite):
+	def __init__(self, image, x, y, spritesheet):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = spritesheet.parse_sprite(image)
+		self.image.set_colorkey((255, 255, 255))
+		self.rect = self.image.get_rect()
+		self.rect.x, self.rect.y = x, y
 
+
+	def draw(self, surface):
+		surface.blit(self.image, (self.rect.x, self.rect.y))
+
+class Tile_Wall(pygame.sprite.Sprite):
+	def __init__(self, image, x, y, spritesheet):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = spritesheet.parse_sprite(image)
+		self.image.set_colorkey((255, 255, 255))
+		self.rect = self.image.get_rect()
+		self.rect.x, self.rect.y = x, y
+
+
+	def draw(self, surface):
+		surface.blit(self.image, (self.rect.x, self.rect.y))
 
 class TileMap():
 	def __init__(self, filename, spritesheet):
@@ -122,25 +125,33 @@ class TileMap():
 				if tile == "0":
 					Temptile = Tile("wall2", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
+					Tilegroup.add(Temptile)
 				elif tile == "1":
 					Temptile = Tile("wall1", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
+					Tilegroup.add(Temptile)
 				elif tile == "2":
-					Temptile = Tile("transparent", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_NoCol("transparent", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
+					Tilegroup_nocol.add(Temptile)
+				elif tile == "4":
+					Temptile = Tile_Wall("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					tiles.append(Temptile)
+					Tilegroup_wall.add(Temptile)
 				x += 1
-				Tilegroup.add(Temptile)
 			y += 1
 
 		self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
 		return tiles
 
+# general functions for player
+
 def update():
 	global playerx, playery, offsetX, offsetY
-	player_rect.center = (playerx, playery)
-	map.draw_map(screen)
+	player_rect.topleft = (playerx+32, playery)
+	map_below.draw_map(screen)
 	screen.blit(player_img, player_rect)
-	#screen.blit(player_img, test_rect)
+	map_above.draw_map(screen)
 	pygame.display.flip()
 
 def collide():
@@ -150,15 +161,24 @@ def collide():
 		collide_up = False
 		collide_right = False
 		collide_left = False
-		#print(self.rect.bottom)
-		#print(player_rect.top)
 		for i in list(Tilegroup.sprites()):
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-				if pressed_keys[pygame.K_DOWN] and player_rect.bottom == i.rect.top:
+				if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
 					collide_down = True
-				if pressed_keys[pygame.K_UP] and player_rect.top == i.rect.bottom:
+				if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
 					collide_up = True
-			if i.rect.top - 31 <= player_rect.top <= i.rect.bottom - 1:
+			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 17:
+				if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+					collide_right = True
+				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+					collide_left = True
+		for i in list(Tilegroup_wall.sprites()):
+			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
+				if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
+					collide_down = True
+				if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
+					collide_up = True
+			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 1:
 				if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
 					collide_right = True
 				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
@@ -167,10 +187,12 @@ def collide():
 def move():
 	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY
 	pressed_keys = pygame.key.get_pressed()
+	#sprinting lets you clip through walls
+	#do whatever you want with this information
 	#if pressed_keys[pygame.K_x]:
-	#	move = 8
+	#	move = 4
 	#else:
-	move = 4
+	move = 2
 	if pressed_keys[pygame.K_LEFT] and collide_left == False:
 		playerx -= move
 	if pressed_keys[pygame.K_RIGHT] and collide_right == False:
@@ -183,19 +205,16 @@ def move():
 	offsetY = playery
 
 spritesheet = Spritesheet('assets/spritesheet.png')
-map = TileMap("levels/level1.csv", spritesheet)
-#print(Tilegroup.sprites())
+map_below = TileMap("levels/level1-back.csv", spritesheet)
+map_above = TileMap("levels/level1-front.csv", spritesheet)
 run = True
+
 while run:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			sys.exit()
-			
-	#print(collide_down)
-	#print(collide_left)
-	#print(collide_right)
-	#print(collide_up)
 
+	#Collision then movement
 	collide()
 	move()
 

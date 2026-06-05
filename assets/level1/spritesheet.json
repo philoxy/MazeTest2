@@ -32,9 +32,33 @@
         "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
         "sourceSize": {"w":64,"h":64}
     },
-    "transparent":
+    "path":
+    {
+        "frame": {"x":64,"y":64,"w":64,"h":64},
+        "rotated": false,
+        "trimmed": false,
+        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+        "sourceSize": {"w":64,"h":64}
+    },
+    "bridge":
     {
         "frame": {"x":128,"y":0,"w":64,"h":64},
+        "rotated": false,
+        "trimmed": false,
+        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+        "sourceSize": {"w":64,"h":64}
+    },
+    "bridge2":
+    {
+        "frame": {"x":128,"y":64,"w":64,"h":64},
+        "rotated": false,
+        "trimmed": false,
+        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+        "sourceSize": {"w":64,"h":64}
+    },
+    "ladder":
+    {
+        "frame": {"x":192,"y":64,"w":64,"h":64},
         "rotated": false,
         "trimmed": false,
         "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},

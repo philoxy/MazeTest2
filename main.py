@@ -35,6 +35,7 @@ Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()
 Tilegroup_wall = pygame.sprite.Group()
 Tilegroup_exit = pygame.sprite.Group()
+Tilegroup_obj = pygame.sprite.Group()
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
 class Spritesheet:
@@ -152,9 +153,10 @@ class TileMap():
 					tiles.append(Temptile)
 					Tilegroup.add(Temptile)
 				elif tile == "2":
-					Temptile = Tile_NoCol("transparent", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_NoCol("bridge", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
+					#only collide with bridge on certain layer
 				elif tile == "3":
 					Temptile = Tile_Exit("exit", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
@@ -163,6 +165,18 @@ class TileMap():
 					Temptile = Tile_Wall("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet)
 					tiles.append(Temptile)
 					Tilegroup_wall.add(Temptile)
+				elif tile == "5":
+					Temptile = Tile_NoCol("path", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					tiles.append(Temptile)
+					Tilegroup_nocol.add(Temptile)
+				elif tile == "6":
+					Temptile = Tile_NoCol("bridge2", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					tiles.append(Temptile)
+					Tilegroup_nocol.add(Temptile)
+				elif tile == "7":
+					Temptile = Tile_NoCol("ladder", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					tiles.append(Temptile)
+					Tilegroup_obj.add(Temptile)
 				x += 1
 			y += 1
 
@@ -172,16 +186,18 @@ class TileMap():
 # general functions for player
 
 def update():
-	global playerx, playery, offsetX, offsetY, player_img1
+	global playerx, playery, offsetX, offsetY, player_img1, player_rect
 	player_img = player_img1
-	player_rect.topleft = (playerx+32, playery)
+	player_rect.topleft = (playerx, playery)
 	map_below.draw_map(screen)
-	screen.blit(player_img, player_rect)
+	map_below2.draw_map(screen)
+	screen.blit(player_img, pygame.Rect(playerx-16, playery-32, 32, 32))
 	map_above.draw_map(screen)
+	map_above2.draw_map(screen)
 	pygame.display.flip()
 
 def collide():
-		global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk
+		global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer
 		pressed_keys = pygame.key.get_pressed()
 		collide_down = False
 		collide_up = False
@@ -212,6 +228,11 @@ def collide():
 		for i in list(Tilegroup_exit.sprites()):
 			if player_rect.colliderect(i.rect):
 				win = True
+		for i in list(Tilegroup_obj.sprites()):
+			if player_rect.colliderect(i.rect):
+				if i == "ladder":
+					print("ladder")
+
 
 
 def movep():
@@ -219,6 +240,15 @@ def movep():
 	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk
 	addwalk = False
 	pressed_keys = pygame.key.get_pressed()
+
+	if pressed_keys[pygame.K_x]:
+		playerx = 4*round(playerx/4)
+		playery = 4*round(playery/4)
+		move = 4
+	else:
+		move = 2
+
+
 	if pressed_keys[pygame.K_LEFT]:
 		direction = 0
 		if collide_left == False:
@@ -263,11 +293,15 @@ def movep():
 	offsetY = playery
 
 def loadLevel(level_num):
-	global spritesheet, map_below, map_above
+	global spritesheet, map_below, map_above, map_below2, map_above2, level_mus
 	level_num = str(level_num)
 	spritesheet = Spritesheet('assets/level'+level_num+'/spritesheet.png')
-	map_below = TileMap('levels/level'+level_num+'/back.csv', spritesheet)
-	map_above = TileMap('levels/level'+level_num+'/front.csv', spritesheet)
+	map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
+	map_above = TileMap('levels/level'+level_num+'/level'+level_num+'_front.csv', spritesheet)
+	map_above2 = TileMap('levels/level'+level_num+'/level'+level_num+'_front2.csv', spritesheet)
+	map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
+	level_mus = pygame.mixer.music.load("assets/music/level"+level_num+".mp3")
+	pygame.mixer.music.play(loops=1)
 
 def win():
 	global win
@@ -290,16 +324,26 @@ while run:
 
 	if direction == 0:
 		if walksprite == 0:
-			player_img1 = pygame.image.load("assets/player/idle/left.png")
+			player_img1 = pygame.image.load("assets/player/idle/side.png")
+		else:
+			player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
+
+		player_img1 = pygame.transform.flip(player_img1, True, False)
 	if direction == 1:
 		if walksprite == 0:
 			player_img1 = pygame.image.load("assets/player/idle/up.png")
+		else:
+			player_img1 = pygame.image.load("assets/player/walk/up"+str(walksprite)+".png")
 	if direction == 2:
 		if walksprite == 0:
-			player_img1 = pygame.image.load("assets/player/idle/right.png")
+			player_img1 = pygame.image.load("assets/player/idle/side.png")
+		else:
+			player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
 	if direction == 3:
 		if walksprite == 0:
 			player_img1 = pygame.image.load("assets/player/idle/down.png")
+		else:
+			player_img1 = pygame.image.load("assets/player/walk/down"+str(walksprite)+".png")
 
 	player_img1.set_colorkey((255, 0, 208))
 	player_img = player_img1
@@ -307,4 +351,3 @@ while run:
 	screen.fill((225, 255, 255))
 	clock.tick(60)
 	update()
-

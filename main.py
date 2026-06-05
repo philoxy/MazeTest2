@@ -5,18 +5,17 @@ import pygame, sys, csv, os, json
 pygame.init()
 pygame.font.init()
 screen = pygame.display.set_mode((640, 704))
-player_img1 = pygame.image.load("assets/player/player.png")
 #setup for animations somehow???
 #if key is still pressed_keys cycle through frames
 #if key is not pressed_keys set to first frame (standing)
 #wow im so smart this will 100% not work at all
-playerx = 96
-playery = 96
-player_img = player_img1
+playerx = 240
+playery = 274
 player_rect = pygame.Rect(playerx, playery, 32, 32)
-icon = player_img1
+icon = pygame.image.load("assets/player/idle/down.png")
 pygame.display.set_caption("MAZETEST 2")
 clock = pygame.time.Clock()
+move = 2
 
 collide_down = False
 collide_up = False
@@ -25,6 +24,12 @@ collide_left = False
 offsetX = 0
 offsetY = 0
 win = False
+walk = 0
+addwalk = False
+camerabounds = 200
+walksprite = 0
+direction = 3
+# 0 left 1 up 2 right 3 down
 
 Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()
@@ -65,8 +70,11 @@ class Tile(pygame.sprite.Sprite):
 
 
 	def draw(self, surface):
+		global offsetX, offsetY
+		self.rect.x += offsetX
+		self.rect.y += offsetY
 		surface.blit(self.image, (self.rect.x, self.rect.y))
-
+	
 class Tile_NoCol(pygame.sprite.Sprite):
 	def __init__(self, image, x, y, spritesheet):
 		pygame.sprite.Sprite.__init__(self)
@@ -109,7 +117,7 @@ class TileMap():
 		self.spritesheet = spritesheet
 		self.tiles = self.load_tiles(filename)
 		self.map_surface = pygame.Surface((self.map_w, self.map_h))
-		#i have NO IDEA how to change the colorkey so you have to use 0, 0, 1 for black in rgb values
+		#i have NO IDEA how to change the colorkey so you have to use (0, 0, 1) for black in rgb values
 		self.map_surface.set_colorkey((0, 0, 0))
 		self.load_map()
 
@@ -164,7 +172,8 @@ class TileMap():
 # general functions for player
 
 def update():
-	global playerx, playery, offsetX, offsetY
+	global playerx, playery, offsetX, offsetY, player_img1
+	player_img = player_img1
 	player_rect.topleft = (playerx+32, playery)
 	map_below.draw_map(screen)
 	screen.blit(player_img, player_rect)
@@ -172,7 +181,7 @@ def update():
 	pygame.display.flip()
 
 def collide():
-		global collide_down, collide_up, collide_right, collide_left, playerx, playery, win
+		global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk
 		pressed_keys = pygame.key.get_pressed()
 		collide_down = False
 		collide_up = False
@@ -204,23 +213,52 @@ def collide():
 			if player_rect.colliderect(i.rect):
 				win = True
 
-def move():
-	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY
+
+def movep():
+	# so many variables
+	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk
+	addwalk = False
 	pressed_keys = pygame.key.get_pressed()
-	#sprinting lets you clip through walls
-	#do whatever you want with this information
-	#if pressed_keys[pygame.K_x]:
-	#	move = 4
-	#else:
-	move = 2
-	if pressed_keys[pygame.K_LEFT] and collide_left == False:
-		playerx -= move
-	if pressed_keys[pygame.K_RIGHT] and collide_right == False:
-		playerx += move
-	if pressed_keys[pygame.K_UP] and collide_up == False:
-		playery -= move
-	if pressed_keys[pygame.K_DOWN] and collide_down == False:
-		playery += move
+	if pressed_keys[pygame.K_LEFT]:
+		direction = 0
+		if collide_left == False:
+			playerx -= move
+			addwalk = True
+	if pressed_keys[pygame.K_RIGHT]:
+		direction = 2
+		if collide_right == False:
+			playerx += move
+			addwalk = True
+	if pressed_keys[pygame.K_UP]:
+		direction = 1
+		if collide_up == False:
+			playery -= move
+			addwalk = True
+	if pressed_keys[pygame.K_DOWN]:
+		direction = 3
+		if collide_down == False:
+			playery += move
+			addwalk = True
+
+	if addwalk == True:
+		walk += 1
+		if walk > 40:
+			walk = 1
+	else:
+		walk = 0
+
+	if walk == 0:
+		walksprite = 0
+	elif 1 <= walk <= 10:
+		walksprite = 1
+	elif 11 <= walk <= 20:
+		walksprite = 2
+	elif 21 <= walk <= 30:
+		walksprite = 3
+	elif 32 <= walk <= 40:
+		walksprite = 4
+
+
 	offsetX = playerx
 	offsetY = playery
 
@@ -231,19 +269,40 @@ def loadLevel(level_num):
 	map_below = TileMap('levels/level'+level_num+'/back.csv', spritesheet)
 	map_above = TileMap('levels/level'+level_num+'/front.csv', spritesheet)
 
+def win():
+	global win
+
 loadLevel(1)
 #spritesheet = Spritesheet('assets/level1/spritesheet.png')
 #map_below = TileMap("levels/level1/back.csv", spritesheet)
 #map_above = TileMap("levels/level1/front.csv", spritesheet)
 
-while win == False:
+run = True
+while run:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			sys.exit()
 
+
 	#Collision then movement
 	collide()
-	move()
+	movep()
+
+	if direction == 0:
+		if walksprite == 0:
+			player_img1 = pygame.image.load("assets/player/idle/left.png")
+	if direction == 1:
+		if walksprite == 0:
+			player_img1 = pygame.image.load("assets/player/idle/up.png")
+	if direction == 2:
+		if walksprite == 0:
+			player_img1 = pygame.image.load("assets/player/idle/right.png")
+	if direction == 3:
+		if walksprite == 0:
+			player_img1 = pygame.image.load("assets/player/idle/down.png")
+
+	player_img1.set_colorkey((255, 0, 208))
+	player_img = player_img1
 
 	screen.fill((225, 255, 255))
 	clock.tick(60)

@@ -13,9 +13,10 @@ playerx = 240
 playery = 274
 player_rect = pygame.Rect(playerx, playery, 32, 32)
 icon = pygame.image.load("assets/player/idle/down.png")
+icon.set_colorkey((255,0,208))
 pygame.display.set_caption("MAZETEST 2")
+pygame.display.set_icon(icon)
 clock = pygame.time.Clock()
-move = 2
 
 collide_down = False
 collide_up = False
@@ -30,12 +31,19 @@ camerabounds = 200
 walksprite = 0
 direction = 3
 # 0 left 1 up 2 right 3 down
+move = 2
+layer = 0
+emote = 0
+action = "walk"
+
+All_Tiles = pygame.sprite.Group()
 
 Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()
 Tilegroup_wall = pygame.sprite.Group()
+Tilegroup_wall2 = pygame.sprite.Group()
 Tilegroup_exit = pygame.sprite.Group()
-Tilegroup_obj = pygame.sprite.Group()
+Tilegroup_ladder = pygame.sprite.Group()
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
 class Spritesheet:
@@ -62,55 +70,60 @@ class Spritesheet:
 # seperate classes for no collision tiles (backgrounds n stuff)
 # or just make a background image (easier?)
 class Tile(pygame.sprite.Sprite):
-	def __init__(self, image, x, y, spritesheet):
+	def __init__(self, image, x, y, spritesheet, type):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = spritesheet.parse_sprite(image)
 		self.image.set_colorkey((255, 0, 208))
 		self.rect = self.image.get_rect()
 		self.rect.x, self.rect.y = x, y
+		self.type = type
 
 
 	def draw(self, surface):
 		global offsetX, offsetY
-		self.rect.x += offsetX
-		self.rect.y += offsetY
-		surface.blit(self.image, (self.rect.x, self.rect.y))
+		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
 	
 class Tile_NoCol(pygame.sprite.Sprite):
-	def __init__(self, image, x, y, spritesheet):
+	def __init__(self, image, x, y, spritesheet, type):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = spritesheet.parse_sprite(image)
 		self.image.set_colorkey((255, 0, 208))
 		self.rect = self.image.get_rect()
 		self.rect.x, self.rect.y = x, y
+		self.type = type
 
 
 	def draw(self, surface):
-		surface.blit(self.image, (self.rect.x, self.rect.y))
+		global offsetX, offsetY
+		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
 
 class Tile_Wall(pygame.sprite.Sprite):
-	def __init__(self, image, x, y, spritesheet):
+	def __init__(self, image, x, y, spritesheet, type):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = spritesheet.parse_sprite(image)
 		self.image.set_colorkey((255, 0, 208))
 		self.rect = self.image.get_rect()
 		self.rect.x, self.rect.y = x, y
+		self.type = type
 
 
 	def draw(self, surface):
-		surface.blit(self.image, (self.rect.x, self.rect.y))
+		global offsetX, offsetY
+		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
 
 class Tile_Exit(pygame.sprite.Sprite):
-	def __init__(self, image, x, y, spritesheet):
+	def __init__(self, image, x, y, spritesheet, type):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = spritesheet.parse_sprite(image)
 		self.image.set_colorkey((255, 0, 208))
 		self.rect = self.image.get_rect()
 		self.rect.x, self.rect.y = x, y
+		self.type = type
 
 
 	def draw(self, surface):
-		surface.blit(self.image, (self.rect.x, self.rect.y))
+		global offsetX, offsetY
+		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
 
 class TileMap():
 	def __init__(self, filename, spritesheet):
@@ -123,7 +136,8 @@ class TileMap():
 		self.load_map()
 
 	def draw_map(self, surface):
-		surface.blit(self.map_surface, (0, 0))
+		global offsetX, offsetY
+		surface.blit(self.map_surface, (336-offsetX, 384-offsetY))
 
 	def load_map(self):
 		for tile in self.tiles:
@@ -145,38 +159,59 @@ class TileMap():
 			x = 0
 			for tile in row:
 				if tile == "0":
-					Temptile = Tile("wall2", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile("wall2", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall2")
 					tiles.append(Temptile)
 					Tilegroup.add(Temptile)
+					All_Tiles.add(Temptile)
+
 				elif tile == "1":
-					Temptile = Tile("wall1", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile("wall1", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall1")
 					tiles.append(Temptile)
 					Tilegroup.add(Temptile)
+					All_Tiles.add(Temptile)
+
 				elif tile == "2":
-					Temptile = Tile_NoCol("bridge", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_NoCol("bridge", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
-					#only collide with bridge on certain layer
+					All_Tiles.add(Temptile)
+
 				elif tile == "3":
-					Temptile = Tile_Exit("exit", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_Exit("exit", x * self.tile_size, y * self.tile_size, self.spritesheet, "exit")
 					tiles.append(Temptile)
 					Tilegroup_exit.add(Temptile)
+					All_Tiles.add(Temptile)
+
 				elif tile == "4":
-					Temptile = Tile_Wall("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_Wall("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall3")
 					tiles.append(Temptile)
 					Tilegroup_wall.add(Temptile)
+					All_Tiles.add(Temptile)
+
 				elif tile == "5":
-					Temptile = Tile_NoCol("path", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_NoCol("path", x * self.tile_size, y * self.tile_size, self.spritesheet, "path")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
+					All_Tiles.add(Temptile)
+
 				elif tile == "6":
-					Temptile = Tile_NoCol("bridge2", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_NoCol("bridge2", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge2")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
+					All_Tiles.add(Temptile)
+
 				elif tile == "7":
-					Temptile = Tile_NoCol("ladder", x * self.tile_size, y * self.tile_size, self.spritesheet)
+					Temptile = Tile_NoCol("ladder", x * self.tile_size, y * self.tile_size, self.spritesheet, "ladder")
 					tiles.append(Temptile)
-					Tilegroup_obj.add(Temptile)
+					Tilegroup_ladder.add(Temptile)
+					All_Tiles.add(Temptile)
+
+				elif tile == "10":
+					Temptile = Tile_Wall("blank", x * self.tile_size, y * self.tile_size, self.spritesheet, "blank")
+					tiles.append(Temptile)
+					Tilegroup_wall.add(Temptile)
+					All_Tiles.add(Temptile)
+
 				x += 1
 			y += 1
 
@@ -185,24 +220,14 @@ class TileMap():
 
 # general functions for player
 
-def update():
-	global playerx, playery, offsetX, offsetY, player_img1, player_rect
-	player_img = player_img1
-	player_rect.topleft = (playerx, playery)
-	map_below.draw_map(screen)
-	map_below2.draw_map(screen)
-	screen.blit(player_img, pygame.Rect(playerx-16, playery-32, 32, 32))
-	map_above.draw_map(screen)
-	map_above2.draw_map(screen)
-	pygame.display.flip()
-
 def collide():
-		global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer
+		global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action
 		pressed_keys = pygame.key.get_pressed()
 		collide_down = False
 		collide_up = False
 		collide_right = False
 		collide_left = False
+
 		for i in list(Tilegroup.sprites()):
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
 				if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
@@ -214,34 +239,54 @@ def collide():
 					collide_right = True
 				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
 					collide_left = True
+
 		for i in list(Tilegroup_wall.sprites()):
-			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-				if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
-					collide_down = True
-				if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
-					collide_up = True
-			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 1:
-				if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
-					collide_right = True
-				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
-					collide_left = True
+			if not layer == 1 and (i.type == "wall2" or i.type == "wall3"):
+				if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
+					if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
+						collide_down = True
+					if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
+						collide_up = True
+				if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 1:
+					if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+						collide_right = True
+					if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+						collide_left = True
+
+			# this is just any generic block collision
+			elif layer == 1 and i.type == "blank":
+				if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
+					if pressed_keys[pygame.K_DOWN] and player_rect.bottom == i.rect.top:
+						collide_down = True
+					if pressed_keys[pygame.K_UP] and player_rect.top == i.rect.bottom:
+						collide_up = True
+				if i.rect.top - 33 <= player_rect.top <= i.rect.bottom - 1:
+					if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+						collide_right = True
+					if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+						collide_left = True
+
 		for i in list(Tilegroup_exit.sprites()):
 			if player_rect.colliderect(i.rect):
 				win = True
-		for i in list(Tilegroup_obj.sprites()):
+
+		for i in list(Tilegroup_ladder.sprites()):
 			if player_rect.colliderect(i.rect):
-				if i == "ladder":
-					print("ladder")
+				action = "climb"
+				if pressed_keys[pygame.K_UP]:
+					layer = 1
+				elif pressed_keys[pygame.K_DOWN]:
+					layer = 0
 
-
+				
 
 def movep():
 	# so many variables
-	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk
+	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action
 	addwalk = False
 	pressed_keys = pygame.key.get_pressed()
 
-	if pressed_keys[pygame.K_x]:
+	if pressed_keys[pygame.K_x] and action == "walk":
 		playerx = 4*round(playerx/4)
 		playery = 4*round(playery/4)
 		move = 4
@@ -270,6 +315,10 @@ def movep():
 			playery += move
 			addwalk = True
 
+	if addwalk == False:
+		if pressed_keys[pygame.K_q]:
+			emote = 1
+
 	if addwalk == True:
 		walk += 1
 		if walk > 40:
@@ -288,7 +337,6 @@ def movep():
 	elif 32 <= walk <= 40:
 		walksprite = 4
 
-
 	offsetX = playerx
 	offsetY = playery
 
@@ -301,15 +349,63 @@ def loadLevel(level_num):
 	map_above2 = TileMap('levels/level'+level_num+'/level'+level_num+'_front2.csv', spritesheet)
 	map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
 	level_mus = pygame.mixer.music.load("assets/music/level"+level_num+".mp3")
-	pygame.mixer.music.play(loops=1)
+	pygame.mixer.music.play(-1)
 
-def win():
-	global win
+#def winlvl():
+#	global win
+
+def update():
+	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action
+	player_img = player_img1
+	player_rect.topleft = (playerx, playery)
+	map_below.draw_map(screen)
+	map_below2.draw_map(screen)
+
+	#All_Tiles.draw(screen)
+
+	if layer == 1 or action == "climb":
+		map_above.draw_map(screen)
+		map_above2.draw_map(screen)
+		screen.blit(player_img, pygame.Rect(320, 352, 32, 32))
+	elif layer == 0:
+		screen.blit(player_img, pygame.Rect(320, 352, 32, 32))
+		map_above.draw_map(screen)
+		map_above2.draw_map(screen)
+
+	pygame.display.flip()
+
+
+#i have no idea how to optimize this lmao
+def animate():
+	global direction, walksprite, player_img1, action, emote
+	if action == "walk":
+		if direction == 0:
+			if walksprite == 0:
+				player_img1 = pygame.image.load("assets/player/idle/side.png")
+			else:
+				player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
+
+			player_img1 = pygame.transform.flip(player_img1, True, False)
+		if direction == 1:
+			if walksprite == 0:
+				player_img1 = pygame.image.load("assets/player/idle/up.png")
+			else:
+				player_img1 = pygame.image.load("assets/player/walk/up"+str(walksprite)+".png")
+		if direction == 2:
+			if walksprite == 0:
+				player_img1 = pygame.image.load("assets/player/idle/side.png")
+			else:
+				player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
+		if direction == 3:
+			if walksprite == 0:
+				player_img1 = pygame.image.load("assets/player/idle/down.png")
+			else:
+				player_img1 = pygame.image.load("assets/player/walk/down"+str(walksprite)+".png")
+
+	if emote == 1:
+		player_img1 = pygame.image.load("assets/player/emote/why.png")
 
 loadLevel(1)
-#spritesheet = Spritesheet('assets/level1/spritesheet.png')
-#map_below = TileMap("levels/level1/back.csv", spritesheet)
-#map_above = TileMap("levels/level1/front.csv", spritesheet)
 
 run = True
 while run:
@@ -317,37 +413,18 @@ while run:
 		if event.type == pygame.QUIT:
 			sys.exit()
 
+	emote = 0
 
-	#Collision then movement
+	action = "walk"
+	#Collision, then movement, then animations
 	collide()
 	movep()
-
-	if direction == 0:
-		if walksprite == 0:
-			player_img1 = pygame.image.load("assets/player/idle/side.png")
-		else:
-			player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
-
-		player_img1 = pygame.transform.flip(player_img1, True, False)
-	if direction == 1:
-		if walksprite == 0:
-			player_img1 = pygame.image.load("assets/player/idle/up.png")
-		else:
-			player_img1 = pygame.image.load("assets/player/walk/up"+str(walksprite)+".png")
-	if direction == 2:
-		if walksprite == 0:
-			player_img1 = pygame.image.load("assets/player/idle/side.png")
-		else:
-			player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
-	if direction == 3:
-		if walksprite == 0:
-			player_img1 = pygame.image.load("assets/player/idle/down.png")
-		else:
-			player_img1 = pygame.image.load("assets/player/walk/down"+str(walksprite)+".png")
+	animate()
 
 	player_img1.set_colorkey((255, 0, 208))
 	player_img = player_img1
 
-	screen.fill((225, 255, 255))
+	screen.fill((255, 255, 255))
+
 	clock.tick(60)
 	update()

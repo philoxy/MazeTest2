@@ -5,7 +5,7 @@ the long awaited sequel
 ## Python Depencencies
 
 * pygame-ce (NOT pygame because it throws errors)
-* json, os, csv, and sys should be preinstalled (you dont have to install them)
+* json, os, csv, math, and sys should be preinstalled (you dont have to install them)
 * ~~antigravity~~
 
 ## Installation
@@ -17,5 +17,4 @@ the long awaited sequel
 * more levels
 * dialogue boxes?
 * emotes
-* HUD
-* better backgrounds
+* fullscreen

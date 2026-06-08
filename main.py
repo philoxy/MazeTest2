@@ -1,42 +1,27 @@
 #created without tutorials (mostly)
+# By: Philooxy | https://philoxy.github.io/
 
-import pygame, sys, csv, os, json
+#idea list:
+#buttons to open doors oooo
+
+import pygame, sys, csv, os, json, math
 
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((640, 704))
-#setup for animations somehow???
-#if key is still pressed_keys cycle through frames
-#if key is not pressed_keys set to first frame (standing)
-#wow im so smart this will 100% not work at all
-playerx = 144
-playery = 224
-player_rect = pygame.Rect(playerx, playery, 32, 32)
+screen = pygame.display.set_mode((640, 640))
+
+
 icon = pygame.image.load("assets/icon.png")
 icon.set_colorkey((255,0,208))
 pygame.display.set_caption("MAZETEST 2")
 pygame.display.set_icon(icon)
 pygame.mixer.init()
 clock = pygame.time.Clock()
-collide_down, collide_up, collide_right, collide_left = False, False, False, False
-offsetX = 0
-offsetY = 0
-animX = 0
-animY = 0
-win = False
-walk = 0
-addwalk = False
-camerabounds = 200
-walksprite = 0
-direction = 3
-# 0 left 1 up 2 right 3 down
-move = 2
-layer = 0
-emote = 0
-emotemenu = False
-action = "walk"
-ui_timer, ui_song, ui_emote, ui_4 = False, False, False, False
 
+font1 = pygame.font.Font('assets/determination.ttf', 26)
+font1small = pygame.font.Font('assets/determination.ttf', 12)
+
+#i will remove this eventually because its useless
 All_Tiles = pygame.sprite.Group()
 
 Tilegroup = pygame.sprite.Group()
@@ -45,6 +30,67 @@ Tilegroup_wall = pygame.sprite.Group()
 Tilegroup_wall2 = pygame.sprite.Group()
 Tilegroup_exit = pygame.sprite.Group()
 Tilegroup_ladder = pygame.sprite.Group()
+
+playerx = 144
+playery = 224
+player_rect = pygame.Rect(playerx, playery, 32, 32)
+collide_down, collide_up, collide_right, collide_left = False, False, False, False
+offsetX = 0
+offsetY = 0
+animX = 0
+animY = 0
+walk = 0
+addwalk = False
+walksprite = 0
+direction = 3
+# 0 left 1 up 2 right 3 down
+move = 2
+layer = 0
+emote = 0
+emotemenu = False
+action = "walk"
+restartable = False
+ui_timer, ui_song, ui_emote, ui_levelname = False, False, False, False
+topright_text = ""
+
+def resetvars():
+	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_emote, ui_levelname
+
+	Tilegroup.empty()
+	Tilegroup_nocol.empty()
+	Tilegroup_wall.empty()
+	Tilegroup_wall2.empty()
+	Tilegroup_exit.empty()
+	Tilegroup_ladder.empty()
+
+	playerx = 144
+	playery = 224
+	player_rect = pygame.Rect(playerx, playery, 32, 32)
+	collide_down, collide_up, collide_right, collide_left = False, False, False, False
+	offsetX = 0
+	offsetY = 0
+	animX = 0
+	animY = 0
+	walk = 0
+	addwalk = False
+	walksprite = 0
+	direction = 3
+	# 0 left 1 up 2 right 3 down
+	move = 2
+	layer = 0
+	emote = 0
+	emotemenu = False
+	action = "walk"
+	ui_timer, ui_song, ui_emote, ui_levelname = False, False, False, False
+	topright_text = ""
+
+	Tilegroup.empty()
+	Tilegroup_nocol.empty()
+	Tilegroup_wall.empty()
+	Tilegroup_wall2.empty()
+	Tilegroup_exit.empty()
+	Tilegroup_ladder.empty()
+
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
 class Spritesheet:
@@ -68,8 +114,6 @@ class Spritesheet:
         image = self.get_sprite(x, y, w, h)
         return image
 
-# seperate classes for no collision tiles (backgrounds n stuff)
-# or just make a background image (easier?)
 class Tile(pygame.sprite.Sprite):
 	def __init__(self, image, x, y, spritesheet, type):
 		pygame.sprite.Sprite.__init__(self)
@@ -140,7 +184,7 @@ class TileMap():
 	def draw_map(self, surface):
 		global offsetX, offsetY, level_id
 		if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
-			surface.blit(self.map_surface, (0, 0))
+			surface.blit(self.map_surface, (-(offsetX % 64)-48, -(offsetY % 64)))
 		else:
 			surface.blit(self.map_surface, (336-offsetX, 384-offsetY))
 
@@ -273,7 +317,7 @@ def collide():
 
 		for i in list(Tilegroup_exit.sprites()):
 			if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
-				win = True
+				winlvl("win")
 
 		for i in list(Tilegroup_ladder.sprites()):
 			if player_rect.colliderect(i.rect):
@@ -286,7 +330,7 @@ def collide():
 				
 
 def movep():
-	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu
+	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable
 	addwalk, run = False, False
 	pressed_keys = pygame.key.get_pressed()
 
@@ -323,26 +367,8 @@ def movep():
 			playery += move
 			addwalk = True
 
-	#emotes and other keybinds
-
-	if pressed_keys[pygame.K_e]:
-		if emotemenu == False:
-			emotemenu = True
-		else:
-			emotemenu = False
-
-		if pressed_keys[pygame.K_0] and addwalk == False:
-			emote = 1
-			emotemenu = False
-		elif pressed_keys[pygame.K_1] and addwalk == False:
-			emote = 2
-			emotemenu = False
-
-	
-
-		
-	if pressed_keys[pygame.K_ESCAPE]:
-		winlvl()
+	if pressed_keys[pygame.K_r] and restartable == True:
+		winlvl("restart")
 
 	#animation frame thingy idk
 
@@ -371,14 +397,19 @@ def movep():
 	offsetY = playery
 
 def loadLevel(level_num):
-	global spritesheet, map_below, map_above, map_below2, map_above2, level_mus, bg
+	global spritesheet, map_below, map_above, map_below2, map_above2, level_mus, bg, songname, levelname
 	level_num = str(level_num)
-	spritesheet = Spritesheet('assets/level'+level_num+'/spritesheet.png')
+	spritesheet = Spritesheet('levels/level'+level_num+'/spritesheet.png')
 	map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
 	map_above = TileMap('levels/level'+level_num+'/level'+level_num+'_front.csv', spritesheet)
 	map_above2 = TileMap('levels/level'+level_num+'/level'+level_num+'_front2.csv', spritesheet)
 	map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
 	bg = TileMap('levels/level'+level_num+'/level'+level_num+'_bg.csv', spritesheet)
+	with open("levels/level"+level_num+"/info.txt", "r") as f:
+		texty = f.read()
+		texty = texty.split("\n")
+		levelname = texty[0]
+		songname = texty[1]
 	level_mus = pygame.mixer.music.load("assets/music/level"+level_num+".mp3")
 	pygame.mixer.music.play(-1)
 	pygame.mixer.music.set_volume(0.1)
@@ -387,31 +418,37 @@ def player_img_load(image_path):
 	global player_img1
 	player_img1 = pygame.image.load("assets/player/"+image_path)
 
-def winlvl():
-	global level_id, animY, layer, player_img1
+def winlvl(type):
+	global level_id, animY, layer, player_img1, run, restartable, topright_text
+	restartable = False
 	animY = 0
 	layer = 1
 	player_img_load("anim/wee.png")
-	tada = pygame.mixer.Sound("assets/sounds/tada.mp3")
-	player_img_temp = player_img1
-	channel = tada.play()
-	tada.set_volume(0.5)
+	if type == "win":
+		tada = pygame.mixer.Sound("assets/sounds/tada.mp3")
+		channel = tada.play()
+		tada.set_volume(0.5)
 	exponent, timery = 1, 1
-	while channel.get_busy() or timery <= 100:
+	player_img_temp = player_img1
+	while timery <= 100:
 		if timery/5 == round(timery/5):
 			player_img1 = pygame.transform.rotate(player_img_temp, 90*timery)
 		timery += 1
 		exponent = exponent * 1.03
 		animY += round(exponent)
 		update()
-		print(timery)
-	level_id += 1
-	sys.exit()
-	#loadLevel(level_id)
+	if type == "win":
+		level_id += 1
+		sys.exit()
+	elif type == "restart":
+		topright_text = "Restarting..."
+		update()
+		run = False
+
 
 
 def update():
-	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY
+	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text
 
 	screen.fill((255, 255, 255))
 	clock.tick(60)
@@ -432,10 +469,25 @@ def update():
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
 
+	if ui_timer == True:
+		timer()
+
+	if ui_levelname == True:
+		level_name()
+
+	if ui_song == True:
+		song_name()
+
+	topright_text2 = font1.render(topright_text, True, (255, 255, 255))
+	topright_text2_rect = topright_text2.get_rect()
+	topright_text2_rect.topleft = (16, 16)
+	screen.blit(topright_text2, topright_text2_rect)
+	print(topright_text)
+
 	pygame.display.flip()
 
 
-#i have no idea how to optimize this lmao
+#i have no idea how to optimize any of this lmao
 def animate():
 	global direction, walksprite, player_img1, action, emote, animX, animY, playerx, playery
 	if action == "walk":
@@ -480,51 +532,119 @@ def animate():
 	player_img1.set_colorkey((255, 0, 208))
 	player_img = player_img1
 
+
+# hud elements
+
+def timer():
+	global ui_timer
+	ms = pygame.time.get_ticks()
+	seconds = math.floor(ms/1000)
+	if seconds < 10:
+		seconds = "0"+str(seconds)
+	minutes = math.floor(ms/60000)
+	if minutes < 10:
+		minutes = "0"+str(minutes)
+	ms = math.floor(ms/10)
+	if ms < 10:
+		ms = "00"+str(ms)
+	elif 10 < ms < 100:
+		ms = "0"+str(ms)
+	timer_text = font1.render("Time: "+str(minutes)+":"+str(seconds)+'"'+str(ms), True, (255, 255, 255))
+	timer_text_rect = timer_text.get_rect()
+	timer_text_rect.bottomleft = (16, 624)
+	screen.blit(timer_text, timer_text_rect)
+
+emotewheel = pygame.image.load("assets/hud/emotewheel.png")
+emotewheel.set_colorkey((255, 0, 208))
+
+def emotes():
+	global emotemenu, emotewheel, addwalk, emote
+	pressed_keys = pygame.key.get_pressed()
+
+	if pressed_keys[pygame.K_e]:
+		if emotemenu == False:
+			emotemenu = True
+		elif emotemenu == True:
+			emotemenu = False
+
+	if pressed_keys[pygame.K_0] and addwalk == False:
+		emote = 1
+		emotemenu = False
+	elif pressed_keys[pygame.K_1] and addwalk == False:
+		emote = 2
+		emotemenu = False
+	if emotemenu == True:
+		screen.blit(emotewheel, (440, 440))
+
+def level_name():
+	global levelname
+	name_text = font1.render(levelname, True, (255, 255, 255))
+	name_text_rect = name_text.get_rect()
+	name_text_rect.topleft = (16, 16)
+	screen.blit(name_text, name_text_rect)
+
+def song_name():
+	global songname
+	song_text = font1small.render("Song: "+songname, True, (255, 255, 255))
+	song_text_rect = song_text.get_rect()
+	song_text_rect.topleft = (16, 48)
+	screen.blit(song_text, song_text_rect)
+
+def intro():
+	global animY, player_img1, layer, ui_song, ui_timer, ui_emote, ui_levelname
+
+	collide()
+	movep()
+	animate()
+	update()
+
+	# make it say 3 2 1 go or something
+	exponent, timery, layer = 1, 1, 1
+	animY = 625
+	player_img_load("anim/wee.png")
+	while timery <= 100:
+			if timery >= 1:
+				ui_levelname = True
+			if timery >= 25:
+				ui_song = True
+			if timery >= 50:
+				ui_timer = True
+			if timery >= 75:
+				ui_emote = True
+			timery += 1
+			exponent = exponent * 1.03
+			animY -= round(exponent)
+			update()
+	exponent, timery, layer = 1, 1, 0
+
 level_id = 1
 loadLevel(level_id)
 
 run = True
+restartable = True
+while True:
 
-collide()
-movep()
-animate()
-update()
+	resetvars()
+	loadLevel(level_id)
+	intro()
+	
+	restartable = True
+	run = True
+	while run:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				sys.exit()
 
-# make it say 3 2 1 go or something
-exponent, timery, layer = 1, 1, 1
-animY = 625
-player_img_load("anim/wee.png")
-while timery <= 100:
-		if timery == 1:
-			print("ui1")
-		if timery == 25:
-			print("ui2")
-		if timery == 50:
-			print("ui3")
-		if timery == 75:
-			print("ui4")
-		timery += 1
-		exponent = exponent * 1.03
-		animY -= round(exponent)
+		emote = 0
+
+		action = "walk"
+		#Collision, then movement, then animations
+		collide()
+		movep()
+			
+		# hud elements
+		emotes()
+
+		animate()
+
 		update()
-exponent, timery, layer = 1, 1, 0
-
-while run:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			sys.exit()
-
-	emote = 0
-
-	action = "walk"
-	#Collision, then movement, then animations
-	collide()
-	movep()
-	animate()
-
-	#print(pygame.time.get_ticks())
-
-	if win == True:
-		winlvl()
-
-	update()

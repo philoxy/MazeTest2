@@ -1,4 +1,3 @@
-#created without tutorials (mostly)
 # By: Philooxy | https://philoxy.github.io/
 
 #idea list:
@@ -8,8 +7,7 @@ import pygame, sys, csv, os, json, math
 
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((640, 640))
-
+screen = pygame.display.set_mode((640, 640), vsync=1)
 
 icon = pygame.image.load("assets/icon.png")
 icon.set_colorkey((255,0,208))
@@ -43,6 +41,7 @@ walk = 0
 addwalk = False
 walksprite = 0
 direction = 3
+t0 = 0
 # 0 left 1 up 2 right 3 down
 move = 2
 layer = 0
@@ -50,11 +49,10 @@ emote = 0
 emotemenu = False
 action = "walk"
 restartable = False
-ui_timer, ui_song, ui_emote, ui_levelname = False, False, False, False
-topright_text = ""
+ui_timer, ui_song, ui_topright, ui_levelname = False, False, False, False
 
 def resetvars():
-	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_emote, ui_levelname
+	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
@@ -81,8 +79,7 @@ def resetvars():
 	emote = 0
 	emotemenu = False
 	action = "walk"
-	ui_timer, ui_song, ui_emote, ui_levelname = False, False, False, False
-	topright_text = ""
+	ui_timer, ui_song, ui_topright, ui_levelname = False, False, False, False
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
@@ -330,7 +327,7 @@ def collide():
 				
 
 def movep():
-	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable
+	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text
 	addwalk, run = False, False
 	pressed_keys = pygame.key.get_pressed()
 
@@ -368,7 +365,11 @@ def movep():
 			addwalk = True
 
 	if pressed_keys[pygame.K_r] and restartable == True:
+		topright_text = "Restarting..."
 		winlvl("restart")
+	if pressed_keys[pygame.K_ESCAPE] and restartable == True:
+		topright_text = "Exiting..."
+		winlvl("exit")
 
 	#animation frame thingy idk
 
@@ -397,7 +398,7 @@ def movep():
 	offsetY = playery
 
 def loadLevel(level_num):
-	global spritesheet, map_below, map_above, map_below2, map_above2, level_mus, bg, songname, levelname
+	global spritesheet, map_below, map_above, map_below2, map_above2, level_mus, bg, songname, levelname, topright_text
 	level_num = str(level_num)
 	spritesheet = Spritesheet('levels/level'+level_num+'/spritesheet.png')
 	map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
@@ -410,9 +411,12 @@ def loadLevel(level_num):
 		texty = texty.split("\n")
 		levelname = texty[0]
 		songname = texty[1]
+		topright_text = texty[2]
 	level_mus = pygame.mixer.music.load("assets/music/level"+level_num+".mp3")
 	pygame.mixer.music.play(-1)
 	pygame.mixer.music.set_volume(0.1)
+
+
 
 def player_img_load(image_path):
 	global player_img1
@@ -439,11 +443,14 @@ def winlvl(type):
 		update()
 	if type == "win":
 		level_id += 1
-		sys.exit()
+		run = False
 	elif type == "restart":
-		topright_text = "Restarting..."
 		update()
 		run = False
+	elif type == "exit":
+		update()
+		run = False
+		sys.exit()
 
 
 
@@ -478,12 +485,11 @@ def update():
 	if ui_song == True:
 		song_name()
 
-	topright_text2 = font1.render(topright_text, True, (255, 255, 255))
-	topright_text2_rect = topright_text2.get_rect()
-	topright_text2_rect.topleft = (16, 16)
-	screen.blit(topright_text2, topright_text2_rect)
-	print(topright_text)
-
+	if ui_topright == True:
+		topright_text2 = font1small.render(topright_text, True, (255, 255, 255))
+		topright_text2_rect = topright_text2.get_rect()
+		topright_text2_rect.topright = (624, 16)
+		screen.blit(topright_text2, topright_text2_rect)
 	pygame.display.flip()
 
 
@@ -536,8 +542,8 @@ def animate():
 # hud elements
 
 def timer():
-	global ui_timer
-	ms = pygame.time.get_ticks()
+	global ui_timer, t0
+	ms = pygame.time.get_ticks()-t0
 	seconds = math.floor(ms/1000)
 	if seconds < 10:
 		seconds = "0"+str(seconds)
@@ -591,7 +597,7 @@ def song_name():
 	screen.blit(song_text, song_text_rect)
 
 def intro():
-	global animY, player_img1, layer, ui_song, ui_timer, ui_emote, ui_levelname
+	global animY, player_img1, layer, ui_song, ui_timer, ui_topright, ui_levelname, topright_text
 
 	collide()
 	movep()
@@ -610,7 +616,7 @@ def intro():
 			if timery >= 50:
 				ui_timer = True
 			if timery >= 75:
-				ui_emote = True
+				ui_topright = True
 			timery += 1
 			exponent = exponent * 1.03
 			animY -= round(exponent)
@@ -627,7 +633,8 @@ while True:
 	resetvars()
 	loadLevel(level_id)
 	intro()
-	
+	t0 = pygame.time.get_ticks()
+
 	restartable = True
 	run = True
 	while run:

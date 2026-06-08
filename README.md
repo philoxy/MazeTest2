@@ -10,11 +10,19 @@ the long awaited sequel
 
 ## Installation
 1. Get python (any version as long as you use pygame-ce)
-2. Run `git clone https://github.com/philoxy/PlatformerTest.git` to get all the game files in your current working directory
-3. Go into the "PlatformerTest" folder and then run `python3 main.py` to run the game. The game should then start (as long as your <a href="https://xkcd.com/1987/">python environment</a> isnt messed up)
+2. Install the required depencencies (listed above)
+3. Run `git clone https://github.com/philoxy/PlatformerTest.git` to get all the game files in your current working directory (or if youre too scared to use a terminal, you can click the green code button to download the game files in a zip and extract it)
+4. Go into the "PlatformerTest" folder and then run `python3 main.py` to run the game. The game should then start (as long as your <a href="https://xkcd.com/1987/">python environment</a> isnt messed up)
 
 ## To-do list
 * more levels
 * dialogue boxes?
 * emotes
 * fullscreen
+* restarting text
+* more animations
+* multiple movement keybinds (wasd)
+* tutorial
+* title screen
+* tutorial on how to make levels
+* make intro work (it doesnt show on my mac)

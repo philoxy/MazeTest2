@@ -22,7 +22,8 @@ the long awaited sequel
 * restarting text
 * more animations
 * multiple movement keybinds (wasd)
-* tutorial
+* help menu
+    * tutorial
+    * tutorial on how to make levels
+* pause menu
 * title screen
-* tutorial on how to make levels
-* make intro work (it doesnt show on my mac)

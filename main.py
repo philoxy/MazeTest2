@@ -3,7 +3,7 @@
 #idea list:
 #buttons to open doors oooo
 
-import pygame, sys, csv, os, json, math
+import pygame, sys, csv, os, json, math, tkinter as tk
 
 pygame.init()
 pygame.font.init()
@@ -18,6 +18,7 @@ clock = pygame.time.Clock()
 
 font1 = pygame.font.Font('assets/determination.ttf', 26)
 font1small = pygame.font.Font('assets/determination.ttf', 12)
+font1big = pygame.font.Font('assets/determination.ttf', 80)
 
 #i will remove this eventually because its useless
 All_Tiles = pygame.sprite.Group()
@@ -28,6 +29,7 @@ Tilegroup_wall = pygame.sprite.Group()
 Tilegroup_wall2 = pygame.sprite.Group()
 Tilegroup_exit = pygame.sprite.Group()
 Tilegroup_ladder = pygame.sprite.Group()
+player_img1 = icon
 
 playerx = 144
 playery = 224
@@ -41,7 +43,7 @@ walk = 0
 addwalk = False
 walksprite = 0
 direction = 3
-t0 = 0
+t0, t1 = 0, 0
 # 0 left 1 up 2 right 3 down
 move = 2
 layer = 0
@@ -49,10 +51,10 @@ emote = 0
 emotemenu = False
 action = "walk"
 restartable = False
-ui_timer, ui_song, ui_topright, ui_levelname = False, False, False, False
+ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
 
 def resetvars():
-	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname
+	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
@@ -79,7 +81,7 @@ def resetvars():
 	emote = 0
 	emotemenu = False
 	action = "walk"
-	ui_timer, ui_song, ui_topright, ui_levelname = False, False, False, False
+	ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
@@ -368,7 +370,7 @@ def movep():
 		topright_text = "Restarting..."
 		winlvl("restart")
 	if pressed_keys[pygame.K_ESCAPE] and restartable == True:
-		topright_text = "Exiting..."
+		#topright_text = "Exiting..."
 		winlvl("exit")
 
 	#animation frame thingy idk
@@ -398,13 +400,14 @@ def movep():
 	offsetY = playery
 
 def loadLevel(level_num):
-	global spritesheet, map_below, map_above, map_below2, map_above2, level_mus, bg, songname, levelname, topright_text
+	global spritesheet, map_below, map_above, map_below2, map_above2, map_above3, level_mus, bg, songname, levelname, topright_text
 	level_num = str(level_num)
 	spritesheet = Spritesheet('levels/level'+level_num+'/spritesheet.png')
 	map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
 	map_above = TileMap('levels/level'+level_num+'/level'+level_num+'_front.csv', spritesheet)
 	map_above2 = TileMap('levels/level'+level_num+'/level'+level_num+'_front2.csv', spritesheet)
 	map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
+	map_above3 = TileMap('levels/level'+level_num+'/level'+level_num+'_front3.csv', spritesheet)
 	bg = TileMap('levels/level'+level_num+'/level'+level_num+'_bg.csv', spritesheet)
 	with open("levels/level"+level_num+"/info.txt", "r") as f:
 		texty = f.read()
@@ -423,24 +426,28 @@ def player_img_load(image_path):
 	player_img1 = pygame.image.load("assets/player/"+image_path)
 
 def winlvl(type):
-	global level_id, animY, layer, player_img1, run, restartable, topright_text
+	global level_id, animY, layer, player_img1, run, restartable, topright_text, win, title, t0
 	restartable = False
 	animY = 0
-	layer = 1
-	player_img_load("anim/wee.png")
+	if not type == "exit":
+		layer = 1
+		player_img_load("anim/wee.png")
+	win = True
 	if type == "win":
 		tada = pygame.mixer.Sound("assets/sounds/tada.mp3")
 		channel = tada.play()
 		tada.set_volume(0.5)
 	exponent, timery = 1, 1
-	player_img_temp = player_img1
-	while timery <= 100:
-		if timery/5 == round(timery/5):
-			player_img1 = pygame.transform.rotate(player_img_temp, 90*timery)
-		timery += 1
-		exponent = exponent * 1.03
-		animY += round(exponent)
-		update()
+	if not type == "exit":
+		player_img_temp = player_img1
+	if not type == "exit":
+		while timery <= 100:
+			if timery/5 == round(timery/5):
+				player_img1 = pygame.transform.rotozoom(player_img_temp, 90*timery, 1/(timery/5))
+			timery += 1
+			exponent = exponent * 1.03
+			animY += round(exponent)
+			update()
 	if type == "win":
 		level_id += 1
 		run = False
@@ -449,8 +456,20 @@ def winlvl(type):
 		run = False
 	elif type == "exit":
 		update()
-		run = False
-		sys.exit()
+		restartable = True
+		title = True
+		t1 = pygame.time.get_ticks()-t0
+		while title:
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					sys.exit()
+			titlescreen("pause")
+			timer()
+		
+		t2 = pygame.time.get_ticks()-t0
+		t0 += (t2-t1)
+
+		
 
 
 
@@ -475,6 +494,8 @@ def update():
 		screen.blit(player_img, pygame.Rect(320+animX, 352-animY, 32, 32))
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
+
+	map_above3.draw_map(screen)
 
 	if ui_timer == True:
 		timer()
@@ -542,20 +563,24 @@ def animate():
 # hud elements
 
 def timer():
-	global ui_timer, t0
+	global ui_timer, t0, win, ui_timer2, minutes, seconds, ms
 	ms = pygame.time.get_ticks()-t0
 	seconds = math.floor(ms/1000)
+	ms = math.floor((ms-seconds*1000))
 	if seconds < 10:
 		seconds = "0"+str(seconds)
 	minutes = math.floor(ms/60000)
 	if minutes < 10:
 		minutes = "0"+str(minutes)
-	ms = math.floor(ms/10)
 	if ms < 10:
 		ms = "00"+str(ms)
 	elif 10 < ms < 100:
 		ms = "0"+str(ms)
-	timer_text = font1.render("Time: "+str(minutes)+":"+str(seconds)+'"'+str(ms), True, (255, 255, 255))
+		
+	if ui_timer2 == True:
+		timer_text = font1.render("Time: "+str(minutes)+":"+str(seconds)+'"'+str(ms), True, (255, 255, 255))
+	else:
+		timer_text = font1.render('Time: 00:00"00', True, (255, 255, 255))
 	timer_text_rect = timer_text.get_rect()
 	timer_text_rect.bottomleft = (16, 624)
 	screen.blit(timer_text, timer_text_rect)
@@ -597,7 +622,7 @@ def song_name():
 	screen.blit(song_text, song_text_rect)
 
 def intro():
-	global animY, player_img1, layer, ui_song, ui_timer, ui_topright, ui_levelname, topright_text
+	global animY, player_img1, layer, ui_song, ui_timer, ui_topright, ui_levelname, topright_text, animX, animY, player_img1, ui_timer2
 
 	collide()
 	movep()
@@ -605,30 +630,165 @@ def intro():
 	update()
 
 	# make it say 3 2 1 go or something
-	exponent, timery, layer = 1, 1, 1
+	exponent, layer = 1, 1
 	animY = 625
 	player_img_load("anim/wee.png")
-	while timery <= 100:
-			if timery >= 1:
-				ui_levelname = True
-			if timery >= 25:
-				ui_song = True
-			if timery >= 50:
-				ui_timer = True
-			if timery >= 75:
-				ui_topright = True
-			timery += 1
-			exponent = exponent * 1.03
-			animY -= round(exponent)
-			update()
-	exponent, timery, layer = 1, 1, 0
+	for i in range(99):
+		if i >= 1:
+			ui_levelname = True
+		if i >= 25:
+			ui_song = True
+		if i >= 50:
+			ui_timer = True
+		if i >= 75:
+			ui_topright = True
+		exponent = exponent * 1.03
+		animY -= round(exponent)
+		update()
+	ui_timer2 = True
+	exponent, layer = 1, 0
+	animY = 0
+
+def rendertext(text, fontsize, color, place, position):
+	if fontsize == "small":
+		text1 = font1small.render(text, True, color)
+	elif fontsize == "big":
+		text1 = font1big.render(text, True, color)
+	elif fontsize == "normal":
+		text1 = font1.render(text, True, color)
+
+	text1_rect = text1.get_rect()
+	if position == "topleft":
+		text1_rect.topleft = place
+	elif position == "topright":
+			text1_rect.topright = place
+	elif position == "bottomleft":
+			text1_rect.bottomleft = place
+	elif position == "bottomright":
+			text1_rect.bottomright = place
+	elif position == "center":
+		text1_rect.center = place
+	screen.blit(text1, text1_rect)
+
+def titlescreen(titletype):
+	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress
+
+	#dvd screensaver 2
+	screen.fill((255,255,255))
+	bg.draw_map(screen)
+	map_below.draw_map(screen)
+	map_below2.draw_map(screen)
+	map_above.draw_map(screen)
+	map_above2.draw_map(screen)
+	if offsetX >= map_below.map_surface.get_size()[0]-192:
+		xdir = -1
+	elif offsetX <= +192:
+		xdir = 1
+	offsetX += 1*xdir
+	if offsetY >= map_below.map_surface.get_size()[1]-192:
+		ydir = -1
+	elif offsetY <= +192:
+		ydir = 1
+	offsetY += 1*ydir
+
+	#VERY useful bit of code
+	pressed_keys = pygame.key.get_pressed()
+	if keypress == False:
+		if pressed_keys[pygame.K_UP]:
+			cursor -= 1
+		elif pressed_keys[pygame.K_DOWN]:
+			cursor += 1
+		if pressed_keys[pygame.K_z]:
+			if titletype == "title":
+				if cursor == 0:
+					title = False
+				if cursor == 1:
+					print("not yet")
+				if cursor == 2:
+					print("not yet")
+				if cursor == 3:
+					print("not yet")
+				if cursor == 4:
+					sys.exit()
+			elif titletype == "pause":
+				if cursor == 0:
+					title = False
+				if cursor == 1:
+					print("not yet")
+				if cursor == 2:
+					print("not yet")
+				if cursor == 3:
+					sys.exit()
+	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z]:
+		keypress = True
+	else:
+		keypress = False
+	
+	if titletype == "title":
+		maxcursor = 4
+	elif titletype == "pause":
+		maxcursor = 3
+
+	if cursor < 0:
+		cursor = maxcursor
+	elif cursor > maxcursor:
+		cursor = 0
+
+
+	cursory = 60*cursor
+
+	#print(100*(math.sin(offsetX/100)))
+	if titletype == "title":
+		rendertext("MAZETEST 2", "big", (255, 255, 255), (320, 128), "center")
+		rendertext("Version 0.8", "small", (255, 255, 255), (520, 160), "topright")
+		rendertext("By Philooxy", "small", (255, 255, 255), (630, 630), "bottomright")
+
+		rendertext("Play", "normal", (255, 255, 255), (120, 320), "topleft")
+		rendertext("Custom Levels", "normal", (255, 255, 255), (120, 380), "topleft")
+		rendertext("Options", "normal", (255, 255, 255), (120, 440), "topleft")
+		rendertext("Help", "normal", (255, 255, 255), (120, 500), "topleft")
+		rendertext("Quit", "normal", (255, 0, 0), (120, 560), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, 320+cursory), "topleft")
+
+	elif titletype == "pause":
+		rendertext("Paused", "big", (255, 255, 255), (320, 128), "center")
+		rendertext("MAZETEST 0.8", "small", (255, 255, 255), (630, 630), "bottomright")
+
+		rendertext("Resume", "normal", (255, 255, 255), (120, 320), "topleft")
+		rendertext("Options", "normal", (255, 255, 255), (120, 380), "topleft")
+		rendertext("Help", "normal", (255, 255, 255), (120, 440), "topleft")
+		rendertext("Quit", "normal", (255, 0, 0), (120, 500), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, 320+cursory), "topleft")
+
+
+
+	pygame.display.flip()
+
+def help():
+	root = tk.Tk()
 
 level_id = 1
-loadLevel(level_id)
 
-run = True
-restartable = True
+run, restartable, title = True, True, True
+loadLevel(level_id)
+offsetX, offsetY, xdir, ydir = 0, 256, 1, 1
+cursor = 0
+title_mus = pygame.mixer.music.load("assets/music/hotel1.mp3")
+pygame.mixer.music.play(-1)
+keypress = False
+while title:
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			sys.exit()
+	titlescreen("title")
+
+offsetY, offsetX = 0, 0
+pygame.mixer.music.stop()
 while True:
+
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			sys.exit()
 
 	resetvars()
 	loadLevel(level_id)

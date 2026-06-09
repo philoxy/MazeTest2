@@ -3,7 +3,7 @@
 #idea list:
 #buttons to open doors oooo
 
-import pygame, sys, csv, os, json, math, tkinter as tk
+import pygame, sys, csv, os, json, math
 
 pygame.init()
 pygame.font.init()
@@ -370,8 +370,9 @@ def movep():
 		topright_text = "Restarting..."
 		winlvl("restart")
 	if pressed_keys[pygame.K_ESCAPE] and restartable == True:
-		#topright_text = "Exiting..."
+		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()/4)
 		winlvl("exit")
+		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()*4)
 
 	#animation frame thingy idk
 
@@ -466,6 +467,9 @@ def winlvl(type):
 			titlescreen("pause")
 			timer()
 		
+		#i went insane making this stupid timer work
+		#like it SHOULD have worked but it didnt
+		#im not fixing this again
 		t2 = pygame.time.get_ticks()-t0
 		t0 += (t2-t1)
 
@@ -671,7 +675,7 @@ def rendertext(text, fontsize, color, place, position):
 	screen.blit(text1, text1_rect)
 
 def titlescreen(titletype):
-	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress
+	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus
 
 	#dvd screensaver 2
 	screen.fill((255,255,255))
@@ -705,18 +709,18 @@ def titlescreen(titletype):
 				if cursor == 1:
 					print("not yet")
 				if cursor == 2:
-					print("not yet")
+					options()
 				if cursor == 3:
-					print("not yet")
+					help()
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "pause":
 				if cursor == 0:
 					title = False
 				if cursor == 1:
-					print("not yet")
+					options()
 				if cursor == 2:
-					print("not yet")
+					help()
 				if cursor == 3:
 					sys.exit()
 	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z]:
@@ -765,7 +769,10 @@ def titlescreen(titletype):
 	pygame.display.flip()
 
 def help():
-	root = tk.Tk()
+	print("help")
+
+def options():
+	print("options")
 
 level_id = 1
 
@@ -776,6 +783,7 @@ cursor = 0
 title_mus = pygame.mixer.music.load("assets/music/hotel1.mp3")
 pygame.mixer.music.play(-1)
 keypress = False
+
 while title:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:

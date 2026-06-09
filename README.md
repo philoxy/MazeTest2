@@ -25,5 +25,6 @@ the long awaited sequel
 * help menu
     * tutorial
     * tutorial on how to make levels
-* pause menu
 * title screen
+    * options and help menu
+* compile game so that anyone can play it

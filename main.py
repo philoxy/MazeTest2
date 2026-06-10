@@ -308,67 +308,41 @@ def collide():
 
 	for i in list(Tilegroup.sprites()):
 		if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-			if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
+			if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - 16 <= i.rect.top + 4:
 				collide_down = True
-			if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
+			if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top + 16 >= i.rect.bottom - 4:
 				collide_up = True
 		if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 17:
-			if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+			if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
 				collide_right = True
-			if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+			if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
 				collide_left = True
-
-			"""
-			if (i.rect.left, i.rect.top-playery-32) == (player_rect.right, player_rect.bottom):
-				if pressed_keys[pygame.K_RIGHT]:
-					collide_down = True
-				elif pressed_keys[pygame.K_DOWN]:
-					collide_right = True
-
-			if (i.rect.right, i.rect.top-playery-32) == (player_rect.left, player_rect.bottom):
-				if pressed_keys[pygame.K_LEFT]:
-					collide_down = True
-				elif pressed_keys[pygame.K_DOWN]:
-					collide_left = True
-
-			if (i.rect.left, i.rect.bottom-playery-32) == (player_rect.right, player_rect.top):
-				if pressed_keys[pygame.K_RIGHT]:
-					collide_up = True
-				elif pressed_keys[pygame.K_UP]:
-					collide_right = True
-
-			if (i.rect.right, i.rect.bottom-playery-32) == (player_rect.left, player_rect.top):
-				if pressed_keys[pygame.K_LEFT]:
-					collide_up = True
-				elif pressed_keys[pygame.K_UP]:
-					collide_left = True
-			"""
 
 	for i in list(Tilegroup_wall.sprites()):
 		if not layer == 1 and (i.type == "wall3"):
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-				if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
+				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - 16 <= i.rect.top + 4:
 					collide_down = True
-				if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
+				if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top + 16 >= i.rect.bottom - 4:
 					collide_up = True
 			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 1:
-				if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+				if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
 					collide_right = True
-				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
 					collide_left = True
 
 
 		# this is just any generic block collision
 		if (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-				if pressed_keys[pygame.K_DOWN] and player_rect.bottom == i.rect.top:
+				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom <= i.rect.top + 4:
 					collide_down = True
-				if pressed_keys[pygame.K_UP] and player_rect.top == i.rect.bottom:
+				if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top >= i.rect.bottom - 4:
 					collide_up = True
 			if i.rect.top - 31 <= player_rect.top <= i.rect.bottom - 1:
-				if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+				if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
 					collide_right = True
-				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
 					collide_left = True
 		
 	for i in list(Tilegroup_exit.sprites()):
@@ -384,7 +358,6 @@ def collide():
 					else:
 						layer = 0
 				if i.type == "button" and button_pressed == False:
-					print("press")
 					offsetX2, offsetY2 = offsetX, offsetY
 					offsetX, offsetY = 0, 0
 					button_pressed = True
@@ -655,9 +628,10 @@ def animate():
 
 def timer():
 	global ui_timer, t0, win, ui_timer2, minutes, seconds, ms
-	ms = pygame.time.get_ticks()-t0
-	seconds = math.floor(ms/1000)
+	ms = (pygame.time.get_ticks()-t0)
+	seconds = math.floor(ms/1000) % 60
 	ms = math.floor((ms-seconds*1000))
+	ms2 = ms % 1000
 	if seconds < 10:
 		seconds = "0"+str(seconds)
 	minutes = math.floor(ms/60000)
@@ -669,7 +643,7 @@ def timer():
 		ms = "0"+str(ms)
 		
 	if ui_timer2 == True:
-		timer_text = font1.render("Time: "+str(minutes)+":"+str(seconds)+'"'+str(ms), True, (255, 255, 255))
+		timer_text = font1.render("Time: "+str(minutes)+":"+str(seconds)+'"'+str(ms2), True, (255, 255, 255))
 	else:
 		timer_text = font1.render('Time: 00:00"00', True, (255, 255, 255))
 	timer_text_rect = timer_text.get_rect()
@@ -865,7 +839,7 @@ def titlescreen(titletype):
 
 	pygame.display.flip()
 
-level_id = 1
+level_id = 2
 
 shadowcircle = pygame.image.load("assets/shadow.png")
 shadowcircle.set_colorkey((255, 0, 208))

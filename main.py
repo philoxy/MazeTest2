@@ -20,18 +20,14 @@ font1 = pygame.font.Font('assets/determination.ttf', 26)
 font1small = pygame.font.Font('assets/determination.ttf', 12)
 font1big = pygame.font.Font('assets/determination.ttf', 80)
 
-#i will remove this eventually because its useless
-All_Tiles = pygame.sprite.Group()
-
 Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()
 Tilegroup_wall = pygame.sprite.Group()
-Tilegroup_wall2 = pygame.sprite.Group()
 Tilegroup_exit = pygame.sprite.Group()
 Tilegroup_ladder = pygame.sprite.Group()
 player_img1 = icon
 
-playerx = 144
+playerx = 112
 playery = 224
 player_rect = pygame.Rect(playerx, playery, 32, 32)
 collide_down, collide_up, collide_right, collide_left = False, False, False, False
@@ -52,19 +48,23 @@ emotemenu = False
 action = "walk"
 restartable = False
 ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
+shadow = False
+button_pressed = False
+
+cover = pygame.Surface((640,640), pygame.SRCALPHA)
+cover.fill((0,0,0,100))
 
 def resetvars():
-	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2
+	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
 	Tilegroup_wall.empty()
-	Tilegroup_wall2.empty()
 	Tilegroup_exit.empty()
 	Tilegroup_ladder.empty()
 
-	playerx = 144
-	playery = 224
+	playerx = 176
+	playery = 240
 	player_rect = pygame.Rect(playerx, playery, 32, 32)
 	collide_down, collide_up, collide_right, collide_left = False, False, False, False
 	offsetX = 0
@@ -75,20 +75,14 @@ def resetvars():
 	addwalk = False
 	walksprite = 0
 	direction = 3
-	# 0 left 1 up 2 right 3 down
 	move = 2
 	layer = 0
 	emote = 0
 	emotemenu = False
 	action = "walk"
 	ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
-
-	Tilegroup.empty()
-	Tilegroup_nocol.empty()
-	Tilegroup_wall.empty()
-	Tilegroup_wall2.empty()
-	Tilegroup_exit.empty()
-	Tilegroup_ladder.empty()
+	shadow = False
+	button_pressed = False
 
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
@@ -181,11 +175,11 @@ class TileMap():
 		self.load_map()
 
 	def draw_map(self, surface):
-		global offsetX, offsetY, level_id
+		global offsetX, offsetY, level_id, playerx, playery
 		if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
-			surface.blit(self.map_surface, (-(offsetX % 64)-48, -(offsetY % 64)))
+			surface.blit(self.map_surface, (-(offsetX % 128)-48, -(offsetY % 128)))
 		else:
-			surface.blit(self.map_surface, (336-offsetX, 384-offsetY))
+			surface.blit(self.map_surface, (336-offsetX, 320-offsetY))
 
 	def load_map(self):
 		for tile in self.tiles:
@@ -200,6 +194,7 @@ class TileMap():
 		return map
 
 	def load_tiles(self, filename):
+		global level_id, button_pressed, offsetX, offsetY
 		tiles = []
 		map = self.read_csv(filename)
 		x, y = 0, 0
@@ -207,58 +202,90 @@ class TileMap():
 			x = 0
 			for tile in row:
 				if tile == "0":
-					Temptile = Tile("wall2", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall2")
+					Temptile = Tile_Wall("water", x * self.tile_size, y * self.tile_size, self.spritesheet, "water")
 					tiles.append(Temptile)
-					Tilegroup.add(Temptile)
-					All_Tiles.add(Temptile)
-
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup_wall.add(Temptile)
 				elif tile == "1":
 					Temptile = Tile("wall1", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall1")
 					tiles.append(Temptile)
-					Tilegroup.add(Temptile)
-					All_Tiles.add(Temptile)
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup.add(Temptile)
 
 				elif tile == "2":
 					Temptile = Tile_NoCol("bridge", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
-					All_Tiles.add(Temptile)
 
 				elif tile == "3":
 					Temptile = Tile_Exit("exit", x * self.tile_size, y * self.tile_size, self.spritesheet, "exit")
 					tiles.append(Temptile)
-					Tilegroup_exit.add(Temptile)
-					All_Tiles.add(Temptile)
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup_exit.add(Temptile)
 
 				elif tile == "4":
 					Temptile = Tile_Wall("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall3")
 					tiles.append(Temptile)
-					Tilegroup_wall.add(Temptile)
-					All_Tiles.add(Temptile)
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup_wall.add(Temptile)
 
 				elif tile == "5":
 					Temptile = Tile_NoCol("path", x * self.tile_size, y * self.tile_size, self.spritesheet, "path")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
-					All_Tiles.add(Temptile)
 
 				elif tile == "6":
 					Temptile = Tile_NoCol("bridge2", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge2")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
-					All_Tiles.add(Temptile)
 
 				elif tile == "7":
 					Temptile = Tile_NoCol("ladder", x * self.tile_size, y * self.tile_size, self.spritesheet, "ladder")
 					tiles.append(Temptile)
-					Tilegroup_ladder.add(Temptile)
-					All_Tiles.add(Temptile)
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup_ladder.add(Temptile)
+
+				elif tile == "8":
+					if button_pressed == False:
+						buttontype = "button1"
+					else:
+						buttontype = "button2"
+					Temptile = Tile_NoCol(buttontype, x * self.tile_size, y * self.tile_size, self.spritesheet, "button")
+					tiles.append(Temptile)
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup_ladder.add(Temptile)
 
 				elif tile == "10":
 					Temptile = Tile_Wall("blank", x * self.tile_size, y * self.tile_size, self.spritesheet, "blank")
 					tiles.append(Temptile)
-					Tilegroup_wall.add(Temptile)
-					All_Tiles.add(Temptile)
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup_wall.add(Temptile)
+
+				elif tile == "11":
+					if button_pressed == False:
+						doortype = "door1"
+					else:
+						doortype = "door2"
+					Temptile = Tile_NoCol(doortype, x * self.tile_size, y * self.tile_size, self.spritesheet, "door")
+					tiles.append(Temptile)
+					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+						Tilegroup_nocol.add(Temptile)
+					else:
+						Tilegroup_wall.add(Temptile)
 
 				x += 1
 			y += 1
@@ -268,63 +295,103 @@ class TileMap():
 
 # general functions for player
 
-def collide():
-		global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win
-		pressed_keys = pygame.key.get_pressed()
-		collide_down = False
-		collide_up = False
-		collide_right = False
-		collide_left = False
 
-		for i in list(Tilegroup.sprites()):
+#this function is a mess please dont look at it
+#im not that good at pygame ok
+def collide():
+	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, map_below2, level_id, button_pressed, offsetX, offsetY, run, move
+	pressed_keys = pygame.key.get_pressed()
+	collide_down = False
+	collide_up = False
+	collide_right = False
+	collide_left = False
+
+	for i in list(Tilegroup.sprites()):
+		if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
+			if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
+				collide_down = True
+			if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
+				collide_up = True
+		if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 17:
+			if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+				collide_right = True
+			if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+				collide_left = True
+
+			"""
+			if (i.rect.left, i.rect.top-playery-32) == (player_rect.right, player_rect.bottom):
+				if pressed_keys[pygame.K_RIGHT]:
+					collide_down = True
+				elif pressed_keys[pygame.K_DOWN]:
+					collide_right = True
+
+			if (i.rect.right, i.rect.top-playery-32) == (player_rect.left, player_rect.bottom):
+				if pressed_keys[pygame.K_LEFT]:
+					collide_down = True
+				elif pressed_keys[pygame.K_DOWN]:
+					collide_left = True
+
+			if (i.rect.left, i.rect.bottom-playery-32) == (player_rect.right, player_rect.top):
+				if pressed_keys[pygame.K_RIGHT]:
+					collide_up = True
+				elif pressed_keys[pygame.K_UP]:
+					collide_right = True
+
+			if (i.rect.right, i.rect.bottom-playery-32) == (player_rect.left, player_rect.top):
+				if pressed_keys[pygame.K_LEFT]:
+					collide_up = True
+				elif pressed_keys[pygame.K_UP]:
+					collide_left = True
+			"""
+
+	for i in list(Tilegroup_wall.sprites()):
+		if not layer == 1 and (i.type == "wall3"):
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
 				if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
 					collide_down = True
 				if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
 					collide_up = True
-			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 17:
+			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 1:
 				if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
 					collide_right = True
 				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
 					collide_left = True
 
-		for i in list(Tilegroup_wall.sprites()):
-			if not layer == 1 and (i.type == "wall2" or i.type == "wall3"):
-				if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-					if pressed_keys[pygame.K_DOWN] and player_rect.bottom - 16 == i.rect.top:
-						collide_down = True
-					if pressed_keys[pygame.K_UP] and player_rect.top + 16 == i.rect.bottom:
-						collide_up = True
-				if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 1:
-					if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
-						collide_right = True
-					if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
-						collide_left = True
 
-			# this is just any generic block collision
-			elif layer == 1 and i.type == "blank":
-				if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-					if pressed_keys[pygame.K_DOWN] and player_rect.bottom == i.rect.top:
-						collide_down = True
-					if pressed_keys[pygame.K_UP] and player_rect.top == i.rect.bottom:
-						collide_up = True
-				if i.rect.top - 31 <= player_rect.top <= i.rect.bottom - 1:
-					if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
-						collide_right = True
-					if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
-						collide_left = True
+		# this is just any generic block collision
+		if (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
+			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
+				if pressed_keys[pygame.K_DOWN] and player_rect.bottom == i.rect.top:
+					collide_down = True
+				if pressed_keys[pygame.K_UP] and player_rect.top == i.rect.bottom:
+					collide_up = True
+			if i.rect.top - 31 <= player_rect.top <= i.rect.bottom - 1:
+				if pressed_keys[pygame.K_RIGHT] and player_rect.right == i.rect.left:
+					collide_right = True
+				if pressed_keys[pygame.K_LEFT] and player_rect.left == i.rect.right:
+					collide_left = True
+		
+	for i in list(Tilegroup_exit.sprites()):
+		if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
+			winlvl("win")
 
-		for i in list(Tilegroup_exit.sprites()):
-			if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
-				winlvl("win")
-
-		for i in list(Tilegroup_ladder.sprites()):
+	for i in list(Tilegroup_ladder.sprites()):
 			if player_rect.colliderect(i.rect):
-				action = "climb"
-				if pressed_keys[pygame.K_UP]:
-					layer = 1
-				elif pressed_keys[pygame.K_DOWN]:
-					layer = 0
+				if i.rect.bottom+1 >= player_rect.center[1] >= i.rect.top and i.type == "ladder":
+					action = "climb"
+					if i.rect.top <= player_rect.center[1]<= i.rect.top + 32:
+						layer = 1
+					else:
+						layer = 0
+				if i.type == "button" and button_pressed == False:
+					print("press")
+					offsetX2, offsetY2 = offsetX, offsetY
+					offsetX, offsetY = 0, 0
+					button_pressed = True
+					map_below_temp = TileMap('levels/level'+str(level_id)+'/level'+str(level_id)+'_back2.csv', spritesheet)
+					map_below2 = map_below_temp
+					offsetX, offsetY = offsetX2, offsetY2
+
 
 				
 
@@ -350,7 +417,7 @@ def movep():
 		if collide_left == False:
 			playerx -= move
 			addwalk = True
-	if pressed_keys[pygame.K_RIGHT]:
+	elif pressed_keys[pygame.K_RIGHT]:
 		direction = 2
 		if collide_right == False:
 			playerx += move
@@ -360,16 +427,18 @@ def movep():
 		if collide_up == False:
 			playery -= move
 			addwalk = True
-	if pressed_keys[pygame.K_DOWN]:
+	elif pressed_keys[pygame.K_DOWN]:
 		direction = 3
 		if collide_down == False:
 			playery += move
 			addwalk = True
 
+
 	if pressed_keys[pygame.K_r] and restartable == True:
-		topright_text = "Restarting..."
+		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()/4)
 		winlvl("restart")
-	if pressed_keys[pygame.K_ESCAPE] and restartable == True:
+		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()*4)
+	elif pressed_keys[pygame.K_ESCAPE] and restartable == True:
 		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()/4)
 		winlvl("exit")
 		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()*4)
@@ -401,7 +470,7 @@ def movep():
 	offsetY = playery
 
 def loadLevel(level_num):
-	global spritesheet, map_below, map_above, map_below2, map_above2, map_above3, level_mus, bg, songname, levelname, topright_text
+	global spritesheet, map_below, map_above, map_below2, map_above2, map_above3, level_mus, bg, songname, levelname, topright_text, shadow
 	level_num = str(level_num)
 	spritesheet = Spritesheet('levels/level'+level_num+'/spritesheet.png')
 	map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
@@ -416,6 +485,10 @@ def loadLevel(level_num):
 		levelname = texty[0]
 		songname = texty[1]
 		topright_text = texty[2]
+		if texty[3] == "1":
+			shadow = True
+		elif texty[3] == "0":
+			shadow = False
 	level_mus = pygame.mixer.music.load("assets/music/level"+level_num+".mp3")
 	pygame.mixer.music.play(-1)
 	pygame.mixer.music.set_volume(0.1)
@@ -427,7 +500,7 @@ def player_img_load(image_path):
 	player_img1 = pygame.image.load("assets/player/"+image_path)
 
 def winlvl(type):
-	global level_id, animY, layer, player_img1, run, restartable, topright_text, win, title, t0
+	global level_id, animY, layer, player_img1, run, restartable, topright_text, win, title, t0, offsetX, offsetY
 	restartable = False
 	animY = 0
 	if not type == "exit":
@@ -441,7 +514,6 @@ def winlvl(type):
 	exponent, timery = 1, 1
 	if not type == "exit":
 		player_img_temp = player_img1
-	if not type == "exit":
 		while timery <= 100:
 			if timery/5 == round(timery/5):
 				player_img1 = pygame.transform.rotozoom(player_img_temp, 90*timery, 1/(timery/5))
@@ -452,6 +524,12 @@ def winlvl(type):
 	if type == "win":
 		level_id += 1
 		run = False
+		resetvars()
+		try:
+			loadLevel(level_id)
+		except FileNotFoundError:
+			print("next level not found")
+			sys.exit()
 	elif type == "restart":
 		update()
 		run = False
@@ -465,7 +543,6 @@ def winlvl(type):
 				if event.type == pygame.QUIT:
 					sys.exit()
 			titlescreen("pause")
-			timer()
 		
 		#i went insane making this stupid timer work
 		#like it SHOULD have worked but it didnt
@@ -478,28 +555,33 @@ def winlvl(type):
 
 
 def update():
-	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text
+	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle
 
-	screen.fill((255, 255, 255))
 	clock.tick(60)
+
+	bg.draw_map(screen)
 	
 	player_img = player_img1
 	player_img.set_colorkey((255, 0, 208))
-	player_rect.topleft = (playerx, playery)
-	bg.draw_map(screen)
+	player_rect.topleft = (playerx-32, playery)
 	map_below.draw_map(screen)
 	map_below2.draw_map(screen)
 
 	if layer == 1 or action == "climb":
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
-		screen.blit(player_img, pygame.Rect(320+animX, 352-animY, 32, 32))
+		screen.blit(player_img, pygame.Rect(288+animX, 288-animY, 32, 32))
 	elif layer == 0:
-		screen.blit(player_img, pygame.Rect(320+animX, 352-animY, 32, 32))
+		screen.blit(player_img, pygame.Rect(288+animX, 288-animY, 32, 32))
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
 
 	map_above3.draw_map(screen)
+
+
+	if shadow == True:
+		screen.blit(cover, (0,0))
+		screen.blit(shadowcircle, pygame.Rect(0,0,640,640))
 
 	if ui_timer == True:
 		timer()
@@ -544,6 +626,11 @@ def animate():
 				player_img1 = pygame.image.load("assets/player/idle/down.png")
 			else:
 				player_img1 = pygame.image.load("assets/player/walk/down"+str(walksprite)+".png")
+	elif action == "climb":
+		if walksprite == 0:
+			player_img1 = pygame.image.load("assets/player/climb/climb2.png")
+		else:
+			player_img1 = pygame.image.load("assets/player/climb/climb"+str(walksprite)+".png")
 
 	if emote == 1:
 		player_img1 = pygame.image.load("assets/player/emote/why.png")
@@ -675,7 +762,7 @@ def rendertext(text, fontsize, color, place, position):
 	screen.blit(text1, text1_rect)
 
 def titlescreen(titletype):
-	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus
+	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow
 
 	#dvd screensaver 2
 	screen.fill((255,255,255))
@@ -709,72 +796,79 @@ def titlescreen(titletype):
 				if cursor == 1:
 					print("not yet")
 				if cursor == 2:
-					options()
+					titletype == "options"
 				if cursor == 3:
-					help()
+					titletype == "help"
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "pause":
 				if cursor == 0:
 					title = False
 				if cursor == 1:
-					options()
+					title = False
+					winlvl("restart")
 				if cursor == 2:
-					help()
+					titletype == "options"
 				if cursor == 3:
+					titletype == "help"
+				if cursor == 4:
 					sys.exit()
 	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z]:
 		keypress = True
 	else:
 		keypress = False
 	
-	if titletype == "title":
-		maxcursor = 4
-	elif titletype == "pause":
-		maxcursor = 3
+	maxcursor = 4
 
 	if cursor < 0:
 		cursor = maxcursor
 	elif cursor > maxcursor:
 		cursor = 0
 
-
 	cursory = 60*cursor
 
-	#print(100*(math.sin(offsetX/100)))
+	if shadow == True:
+		screen.blit(shadowcircle, pygame.Rect(0,0,640,640))
+
+	screen.blit(cover, (0,0))
+
 	if titletype == "title":
-		rendertext("MAZETEST 2", "big", (255, 255, 255), (320, 128), "center")
-		rendertext("Version 0.8", "small", (255, 255, 255), (520, 160), "topright")
+		text1 = font1big.render("MAZETEST 2", True, (255, 255, 255))
+		text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
+		text1_rect = text2.get_rect()
+		text1_rect.center = (320, 128)
+		screen.blit(text2, text1_rect)
+		rendertext("Version 0.8.3", "small", (255, 255, 255), (630, 600), "topright")
 		rendertext("By Philooxy", "small", (255, 255, 255), (630, 630), "bottomright")
 
 		rendertext("Play", "normal", (255, 255, 255), (120, 320), "topleft")
-		rendertext("Custom Levels", "normal", (255, 255, 255), (120, 380), "topleft")
+		rendertext("Level Select", "normal", (255, 255, 255), (120, 380), "topleft")
 		rendertext("Options", "normal", (255, 255, 255), (120, 440), "topleft")
 		rendertext("Help", "normal", (255, 255, 255), (120, 500), "topleft")
 		rendertext("Quit", "normal", (255, 0, 0), (120, 560), "topleft")
 		rendertext("*", "normal", (255, 255, 255), (90, 320+cursory), "topleft")
 
 	elif titletype == "pause":
-		rendertext("Paused", "big", (255, 255, 255), (320, 128), "center")
-		rendertext("MAZETEST 0.8", "small", (255, 255, 255), (630, 630), "bottomright")
+		text1 = font1big.render("Paused", True, (255, 255, 255))
+		text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
+		text1_rect = text2.get_rect()
+		text1_rect.center = (320, 128)
+		screen.blit(text2, text1_rect)
+		rendertext("MAZETEST 2 v0.8.3", "small", (255, 255, 255), (630, 630), "bottomright")
 
 		rendertext("Resume", "normal", (255, 255, 255), (120, 320), "topleft")
-		rendertext("Options", "normal", (255, 255, 255), (120, 380), "topleft")
-		rendertext("Help", "normal", (255, 255, 255), (120, 440), "topleft")
-		rendertext("Quit", "normal", (255, 0, 0), (120, 500), "topleft")
+		rendertext("Restart", "normal", (255, 255, 255), (120, 380), "topleft")
+		rendertext("Options", "normal", (255, 255, 255), (120, 440), "topleft")
+		rendertext("Help", "normal", (255, 255, 255), (120, 500), "topleft")
+		rendertext("Quit", "normal", (255, 0, 0), (120, 560), "topleft")
 		rendertext("*", "normal", (255, 255, 255), (90, 320+cursory), "topleft")
-
-
 
 	pygame.display.flip()
 
-def help():
-	print("help")
-
-def options():
-	print("options")
-
 level_id = 1
+
+shadowcircle = pygame.image.load("assets/shadow.png")
+shadowcircle.set_colorkey((255, 0, 208))
 
 run, restartable, title = True, True, True
 loadLevel(level_id)

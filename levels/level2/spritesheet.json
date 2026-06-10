@@ -8,7 +8,7 @@
         "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
         "sourceSize": {"w":64,"h":64}
     },
-    "wall2":
+    "water":
     {
         "frame": {"x":0,"y":0,"w":64,"h":64},
         "rotated": false,
@@ -66,7 +66,23 @@
     },
     "blank":
     {
-        "frame": {"x":256,"y":256,"w":64,"h":64},
+        "frame": {"x":64,"y":192,"w":64,"h":64},
+        "rotated": false,
+        "trimmed": false,
+        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+        "sourceSize": {"w":64,"h":64}
+    },
+    "button1":
+    {
+        "frame": {"x":0,"y":128,"w":64,"h":64},
+        "rotated": false,
+        "trimmed": false,
+        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+        "sourceSize": {"w":64,"h":64}
+    },
+    "button2":
+    {
+        "frame": {"x":64,"y":128,"w":64,"h":64},
         "rotated": false,
         "trimmed": false,
         "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},

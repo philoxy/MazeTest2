@@ -28,3 +28,6 @@ the long awaited sequel
 * title screen
     * options and help menu
 * compile game so that anyone can play it
+* random cool features i feel like adding
+* fix timer not timering
+* fixing that stupid corner clipping bug

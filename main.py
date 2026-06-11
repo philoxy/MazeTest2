@@ -1,7 +1,5 @@
 # By: Philooxy | https://philoxy.github.io/
-
-#idea list:
-#buttons to open doors oooo
+# new record 800 lines
 
 import pygame, sys, csv, os, json, math
 
@@ -22,9 +20,6 @@ font1big = pygame.font.Font('assets/determination.ttf', 80)
 
 Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()
-Tilegroup_wall = pygame.sprite.Group()
-Tilegroup_exit = pygame.sprite.Group()
-Tilegroup_ladder = pygame.sprite.Group()
 player_img1 = icon
 
 playerx = 112
@@ -50,7 +45,7 @@ restartable = False
 ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
 shadow = False
 button_pressed = False
-
+level_id = 1
 cover = pygame.Surface((640,640), pygame.SRCALPHA)
 cover.fill((0,0,0,100))
 
@@ -59,9 +54,6 @@ def resetvars():
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
-	Tilegroup_wall.empty()
-	Tilegroup_exit.empty()
-	Tilegroup_ladder.empty()
 
 	playerx = 176
 	playery = 240
@@ -120,48 +112,6 @@ class Tile(pygame.sprite.Sprite):
 	def draw(self, surface):
 		global offsetX, offsetY
 		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
-	
-class Tile_NoCol(pygame.sprite.Sprite):
-	def __init__(self, image, x, y, spritesheet, type):
-		pygame.sprite.Sprite.__init__(self)
-		self.image = spritesheet.parse_sprite(image)
-		self.image.set_colorkey((255, 0, 208))
-		self.rect = self.image.get_rect()
-		self.rect.x, self.rect.y = x, y
-		self.type = type
-
-
-	def draw(self, surface):
-		global offsetX, offsetY
-		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
-
-class Tile_Wall(pygame.sprite.Sprite):
-	def __init__(self, image, x, y, spritesheet, type):
-		pygame.sprite.Sprite.__init__(self)
-		self.image = spritesheet.parse_sprite(image)
-		self.image.set_colorkey((255, 0, 208))
-		self.rect = self.image.get_rect()
-		self.rect.x, self.rect.y = x, y
-		self.type = type
-
-
-	def draw(self, surface):
-		global offsetX, offsetY
-		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
-
-class Tile_Exit(pygame.sprite.Sprite):
-	def __init__(self, image, x, y, spritesheet, type):
-		pygame.sprite.Sprite.__init__(self)
-		self.image = spritesheet.parse_sprite(image)
-		self.image.set_colorkey((255, 0, 208))
-		self.rect = self.image.get_rect()
-		self.rect.x, self.rect.y = x, y
-		self.type = type
-
-
-	def draw(self, surface):
-		global offsetX, offsetY
-		surface.blit(self.image, (self.rect.x-offsetX, self.rect.y-offsetY))
 
 class TileMap():
 	def __init__(self, filename, spritesheet):
@@ -202,12 +152,13 @@ class TileMap():
 			x = 0
 			for tile in row:
 				if tile == "0":
-					Temptile = Tile_Wall("water", x * self.tile_size, y * self.tile_size, self.spritesheet, "water")
+					Temptile = Tile("water", x * self.tile_size, y * self.tile_size, self.spritesheet, "water")
 					tiles.append(Temptile)
 					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
 						Tilegroup_nocol.add(Temptile)
 					else:
-						Tilegroup_wall.add(Temptile)
+						Tilegroup.add(Temptile)
+
 				elif tile == "1":
 					Temptile = Tile("wall1", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall1")
 					tiles.append(Temptile)
@@ -217,75 +168,75 @@ class TileMap():
 						Tilegroup.add(Temptile)
 
 				elif tile == "2":
-					Temptile = Tile_NoCol("bridge", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge")
+					Temptile = Tile("bridge", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
 
 				elif tile == "3":
-					Temptile = Tile_Exit("exit", x * self.tile_size, y * self.tile_size, self.spritesheet, "exit")
+					Temptile = Tile("exit", x * self.tile_size, y * self.tile_size, self.spritesheet, "exit")
 					tiles.append(Temptile)
 					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
 						Tilegroup_nocol.add(Temptile)
 					else:
-						Tilegroup_exit.add(Temptile)
+						Tilegroup.add(Temptile)
 
 				elif tile == "4":
-					Temptile = Tile_Wall("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall3")
+					Temptile = Tile("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall3")
 					tiles.append(Temptile)
 					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
 						Tilegroup_nocol.add(Temptile)
 					else:
-						Tilegroup_wall.add(Temptile)
+						Tilegroup.add(Temptile)
 
 				elif tile == "5":
-					Temptile = Tile_NoCol("path", x * self.tile_size, y * self.tile_size, self.spritesheet, "path")
+					Temptile = Tile("path", x * self.tile_size, y * self.tile_size, self.spritesheet, "path")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
 
 				elif tile == "6":
-					Temptile = Tile_NoCol("bridge2", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge2")
+					Temptile = Tile("bridge2", x * self.tile_size, y * self.tile_size, self.spritesheet, "bridge2")
 					tiles.append(Temptile)
 					Tilegroup_nocol.add(Temptile)
 
 				elif tile == "7":
-					Temptile = Tile_NoCol("ladder", x * self.tile_size, y * self.tile_size, self.spritesheet, "ladder")
+					Temptile = Tile("ladder", x * self.tile_size, y * self.tile_size, self.spritesheet, "ladder")
 					tiles.append(Temptile)
 					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
 						Tilegroup_nocol.add(Temptile)
 					else:
-						Tilegroup_ladder.add(Temptile)
+						Tilegroup.add(Temptile)
 
 				elif tile == "8":
 					if button_pressed == False:
 						buttontype = "button1"
 					else:
 						buttontype = "button2"
-					Temptile = Tile_NoCol(buttontype, x * self.tile_size, y * self.tile_size, self.spritesheet, "button")
+					Temptile = Tile(buttontype, x * self.tile_size, y * self.tile_size, self.spritesheet, "button")
 					tiles.append(Temptile)
 					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
 						Tilegroup_nocol.add(Temptile)
 					else:
-						Tilegroup_ladder.add(Temptile)
+						Tilegroup.add(Temptile)
 
 				elif tile == "10":
-					Temptile = Tile_Wall("blank", x * self.tile_size, y * self.tile_size, self.spritesheet, "blank")
+					Temptile = Tile("blank", x * self.tile_size, y * self.tile_size, self.spritesheet, "blank")
 					tiles.append(Temptile)
 					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
 						Tilegroup_nocol.add(Temptile)
 					else:
-						Tilegroup_wall.add(Temptile)
+						Tilegroup.add(Temptile)
 
 				elif tile == "11":
 					if button_pressed == False:
 						doortype = "door1"
 					else:
 						doortype = "door2"
-					Temptile = Tile_NoCol(doortype, x * self.tile_size, y * self.tile_size, self.spritesheet, "door")
+					Temptile = Tile(doortype, x * self.tile_size, y * self.tile_size, self.spritesheet, "door")
 					tiles.append(Temptile)
 					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
 						Tilegroup_nocol.add(Temptile)
 					else:
-						Tilegroup_wall.add(Temptile)
+						Tilegroup.add(Temptile)
 
 				x += 1
 			y += 1
@@ -307,18 +258,7 @@ def collide():
 	collide_left = False
 
 	for i in list(Tilegroup.sprites()):
-		if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-			if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - 16 <= i.rect.top + 4:
-				collide_down = True
-			if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top + 16 >= i.rect.bottom - 4:
-				collide_up = True
-		if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 17:
-			if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
-				collide_right = True
-			if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
-				collide_left = True
 
-	for i in list(Tilegroup_wall.sprites()):
 		if not layer == 1 and (i.type == "wall3"):
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
 				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - 16 <= i.rect.top + 4:
@@ -331,9 +271,28 @@ def collide():
 				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
 					collide_left = True
 
+			if (player_rect.right, player_rect.top) == (i.rect.left+4, i.rect.bottom-4):
+				playerx -= 4
+			elif (player_rect.right, player_rect.top) == (i.rect.left+2, i.rect.bottom-2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.top) == (i.rect.right-4, i.rect.bottom-4):
+				playerx += 4
+			if (player_rect.left, player_rect.top) == (i.rect.right-2, i.rect.bottom-2):
+				playerx += 2
+
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+4, i.rect.top+16+4):
+				playerx -= 4
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+2, i.rect.top+16+2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.bottom) == (i.rect.left-4, i.rect.bottom+16+4):
+				playerx -= 4
+			if (player_rect.left, player_rect.bottom) == (i.rect.left-2, i.rect.bottom+16+2):
+				playerx -= 2
 
 		# this is just any generic block collision
-		if (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
+		elif (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
 				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom <= i.rect.top + 4:
 					collide_down = True
@@ -344,12 +303,33 @@ def collide():
 					collide_right = True
 				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
 					collide_left = True
-		
-	for i in list(Tilegroup_exit.sprites()):
-		if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
-			winlvl("win")
 
-	for i in list(Tilegroup_ladder.sprites()):
+			
+			if (player_rect.right, player_rect.top) == (i.rect.left+4, i.rect.bottom-4):
+				playerx -= 4
+			elif (player_rect.right, player_rect.top) == (i.rect.left+2, i.rect.bottom-2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.top) == (i.rect.right-4, i.rect.bottom-4):
+				playerx += 4
+			if (player_rect.left, player_rect.top) == (i.rect.right-2, i.rect.bottom-2):
+				playerx += 2
+
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+4, i.rect.top+4):
+				playerx -= 4
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+2, i.rect.top+2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.bottom) == (i.rect.left-4, i.rect.bottom+4):
+				playerx -= 4
+			if (player_rect.left, player_rect.bottom) == (i.rect.left-2, i.rect.bottom+2):
+				playerx -= 2
+		
+		elif i.type == "exit":
+			if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
+				winlvl("win")
+
+		elif i.type == "ladder" or i.type == "button":
 			if player_rect.colliderect(i.rect):
 				if i.rect.bottom+1 >= player_rect.center[1] >= i.rect.top and i.type == "ladder":
 					action = "climb"
@@ -364,6 +344,40 @@ def collide():
 					map_below_temp = TileMap('levels/level'+str(level_id)+'/level'+str(level_id)+'_back2.csv', spritesheet)
 					map_below2 = map_below_temp
 					offsetX, offsetY = offsetX2, offsetY2
+					
+
+		elif layer == 0 and i.type == "wall1":
+			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
+				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - 16 <= i.rect.top + 4:
+					collide_down = True
+				if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top + 16 >= i.rect.bottom - 4:
+					collide_up = True
+			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 17:
+				if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
+					collide_right = True
+				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
+					collide_left = True
+
+			if (player_rect.right, player_rect.top) == (i.rect.left+4, i.rect.bottom-16-4):
+				playerx -= 4
+			elif (player_rect.right, player_rect.top) == (i.rect.left+2, i.rect.bottom-16-2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.top) == (i.rect.right-4, i.rect.bottom-16-4):
+				playerx += 4
+			if (player_rect.left, player_rect.top) == (i.rect.right-2, i.rect.bottom-16-2):
+				playerx += 2
+
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+4, i.rect.top+16+4):
+				playerx -= 4
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+2, i.rect.top+16+2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.bottom) == (i.rect.left-4, i.rect.bottom+16+4):
+				playerx -= 4
+			if (player_rect.left, player_rect.bottom) == (i.rect.left-2, i.rect.bottom+16+2):
+				playerx -= 2
+
 
 
 				
@@ -373,8 +387,6 @@ def movep():
 	addwalk, run = False, False
 	pressed_keys = pygame.key.get_pressed()
 
-	#sprinting
-
 	if pressed_keys[pygame.K_x] and action == "walk":
 		playerx = 4*round(playerx/4)
 		playery = 4*round(playery/4)
@@ -382,8 +394,6 @@ def movep():
 		run = True
 	else:
 		move = 2
-
-	#movement
 
 	if pressed_keys[pygame.K_LEFT]:
 		direction = 0
@@ -406,7 +416,6 @@ def movep():
 			playery += move
 			addwalk = True
 
-
 	if pressed_keys[pygame.K_r] and restartable == True:
 		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()/4)
 		winlvl("restart")
@@ -415,8 +424,6 @@ def movep():
 		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()/4)
 		winlvl("exit")
 		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()*4)
-
-	#animation frame thingy idk
 
 	if addwalk == True:
 		if run == False:
@@ -466,8 +473,6 @@ def loadLevel(level_num):
 	pygame.mixer.music.play(-1)
 	pygame.mixer.music.set_volume(0.1)
 
-
-
 def player_img_load(image_path):
 	global player_img1
 	player_img1 = pygame.image.load("assets/player/"+image_path)
@@ -516,16 +521,9 @@ def winlvl(type):
 				if event.type == pygame.QUIT:
 					sys.exit()
 			titlescreen("pause")
-		
-		#i went insane making this stupid timer work
-		#like it SHOULD have worked but it didnt
-		#im not fixing this again
+
 		t2 = pygame.time.get_ticks()-t0
 		t0 += (t2-t1)
-
-		
-
-
 
 def update():
 	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle
@@ -551,7 +549,6 @@ def update():
 
 	map_above3.draw_map(screen)
 
-
 	if shadow == True:
 		screen.blit(cover, (0,0))
 		screen.blit(shadowcircle, pygame.Rect(0,0,640,640))
@@ -572,8 +569,6 @@ def update():
 		screen.blit(topright_text2, topright_text2_rect)
 	pygame.display.flip()
 
-
-#i have no idea how to optimize any of this lmao
 def animate():
 	global direction, walksprite, player_img1, action, emote, animX, animY, playerx, playery
 	if action == "walk":
@@ -607,24 +602,12 @@ def animate():
 
 	if emote == 1:
 		player_img1 = pygame.image.load("assets/player/emote/why.png")
-		#animation test
-		#while animX <= 64:
-			#animX += 4
-			#update()
-		#playerx += animX
-		#animX = 0
 	elif emote == 2:
 		for i in range(3):
 			player_img1 = pygame.transform.rotate(player_img1, 90)
 
-		
-
-
 	player_img1.set_colorkey((255, 0, 208))
 	player_img = player_img1
-
-
-# hud elements
 
 def timer():
 	global ui_timer, t0, win, ui_timer2, minutes, seconds, ms
@@ -738,7 +721,6 @@ def rendertext(text, fontsize, color, place, position):
 def titlescreen(titletype):
 	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow
 
-	#dvd screensaver 2
 	screen.fill((255,255,255))
 	bg.draw_map(screen)
 	map_below.draw_map(screen)
@@ -839,8 +821,6 @@ def titlescreen(titletype):
 
 	pygame.display.flip()
 
-level_id = 2
-
 shadowcircle = pygame.image.load("assets/shadow.png")
 shadowcircle.set_colorkey((255, 0, 208))
 
@@ -878,14 +858,11 @@ while True:
 			if event.type == pygame.QUIT:
 				sys.exit()
 
-		emote = 0
+		emote, action = 0, "walk"
 
-		action = "walk"
-		#Collision, then movement, then animations
 		collide()
 		movep()
-			
-		# hud elements
+
 		emotes()
 
 		animate()

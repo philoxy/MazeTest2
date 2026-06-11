@@ -478,7 +478,7 @@ def player_img_load(image_path):
 	player_img1 = pygame.image.load("assets/player/"+image_path)
 
 def winlvl(type):
-	global level_id, animY, layer, player_img1, run, restartable, topright_text, win, title, t0, offsetX, offsetY
+	global level_id, animY, layer, player_img1, run, restartable, topright_text, win, title, t0, offsetX, offsetY, titletype
 	restartable = False
 	animY = 0
 	if not type == "exit":
@@ -515,12 +515,13 @@ def winlvl(type):
 		update()
 		restartable = True
 		title = True
+		titletype = "pause"
 		t1 = pygame.time.get_ticks()-t0
 		while title:
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					sys.exit()
-			titlescreen("pause")
+			titlescreen()
 
 		t2 = pygame.time.get_ticks()-t0
 		t0 += (t2-t1)
@@ -718,8 +719,10 @@ def rendertext(text, fontsize, color, place, position):
 		text1_rect.center = place
 	screen.blit(text1, text1_rect)
 
-def titlescreen(titletype):
-	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow
+def titlescreen():
+	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id
+
+	maxcursor = 1
 
 	screen.fill((255,255,255))
 	bg.draw_map(screen)
@@ -745,16 +748,23 @@ def titlescreen(titletype):
 			cursor -= 1
 		elif pressed_keys[pygame.K_DOWN]:
 			cursor += 1
+		elif titletype == "lvlselect":
+			if pressed_keys[pygame.K_LEFT]:
+				cursor -= 4
+			elif pressed_keys[pygame.K_RIGHT]:
+				cursor += 4
 		if pressed_keys[pygame.K_z]:
 			if titletype == "title":
 				if cursor == 0:
 					title = False
 				if cursor == 1:
-					print("not yet")
+					titletype = "lvlselect"
+					maxcursor = 2
+					cursor = 0
 				if cursor == 2:
-					titletype == "options"
+					titletype = "options"
 				if cursor == 3:
-					titletype == "help"
+					titletype = "help"
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "pause":
@@ -764,24 +774,34 @@ def titlescreen(titletype):
 					title = False
 					winlvl("restart")
 				if cursor == 2:
-					titletype == "options"
+					titletype = "options"
 				if cursor == 3:
-					titletype == "help"
+					titletype = "help"
 				if cursor == 4:
 					sys.exit()
-	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z]:
+			elif titletype == "lvlselect":
+				if cursor != 7:
+					offsetX, offsetY = 0, 0
+					level_id = cursor+1
+					title = False
+				elif cursor == 7:
+					titletype = "title"
+	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
 		keypress = True
 	else:
 		keypress = False
 	
-	maxcursor = 4
+	if titletype == "title" or titletype == "pause":
+		maxcursor = 4
+	elif titletype == "lvlselect":
+		maxcursor = 7
 
 	if cursor < 0:
 		cursor = maxcursor
 	elif cursor > maxcursor:
 		cursor = 0
 
-	cursory = 60*cursor
+	cursory = cursor
 
 	if shadow == True:
 		screen.blit(shadowcircle, pygame.Rect(0,0,640,640))
@@ -802,7 +822,7 @@ def titlescreen(titletype):
 		rendertext("Options", "normal", (255, 255, 255), (120, 440), "topleft")
 		rendertext("Help", "normal", (255, 255, 255), (120, 500), "topleft")
 		rendertext("Quit", "normal", (255, 0, 0), (120, 560), "topleft")
-		rendertext("*", "normal", (255, 255, 255), (90, 320+cursory), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, 320+60*cursory), "topleft")
 
 	elif titletype == "pause":
 		text1 = font1big.render("Paused", True, (255, 255, 255))
@@ -817,7 +837,25 @@ def titlescreen(titletype):
 		rendertext("Options", "normal", (255, 255, 255), (120, 440), "topleft")
 		rendertext("Help", "normal", (255, 255, 255), (120, 500), "topleft")
 		rendertext("Quit", "normal", (255, 0, 0), (120, 560), "topleft")
-		rendertext("*", "normal", (255, 255, 255), (90, 320+cursory), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, 320+60*cursory), "topleft")
+
+	elif titletype == "lvlselect":
+		text1 = font1big.render("Levels", True, (255, 255, 255))
+		text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
+		text1_rect = text2.get_rect()
+		text1_rect.center = (320, 128)
+		screen.blit(text2, text1_rect)
+		rendertext("MAZETEST 2 v0.8.3", "small", (255, 255, 255), (630, 630), "bottomright")
+
+		rendertext("Level 1", "normal", (255, 255, 255), (120, 320), "topleft")
+		rendertext("Level 2", "normal", (255, 255, 255), (120, 380), "topleft")
+		rendertext("Level 3", "normal", (255, 255, 255), (120, 440), "topleft")
+		rendertext("Level 4", "normal", (255, 255, 255), (120, 500), "topleft")
+		rendertext("Level 5", "normal", (255, 255, 255), (320, 320), "topleft")
+		rendertext("Level 6", "normal", (255, 255, 255), (320, 380), "topleft")
+		rendertext("Level 7", "normal", (255, 255, 255), (320, 440), "topleft")
+		rendertext("Back", "normal", (255, 0, 0), (320, 500), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90+math.floor(cursor/4)*200, 320+60*(cursor % 4)), "topleft")
 
 	pygame.display.flip()
 
@@ -831,12 +869,13 @@ cursor = 0
 title_mus = pygame.mixer.music.load("assets/music/hotel1.mp3")
 pygame.mixer.music.play(-1)
 keypress = False
+titletype = "title"
 
 while title:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			sys.exit()
-	titlescreen("title")
+	titlescreen()
 
 offsetY, offsetX = 0, 0
 pygame.mixer.music.stop()

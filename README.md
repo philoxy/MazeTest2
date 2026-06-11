@@ -24,10 +24,7 @@ the long awaited sequel
     * tutorial on how to play
         * controls
     * tutorial on how to make levels
-* title screen
-    * options
-    * help menu
-    * level select
+* work on menu options
 * compile game so that anyone can play it
 * random cool features i feel like adding
 * fixing that stupid corner-stopping-you-from-moving bug

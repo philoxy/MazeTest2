@@ -250,137 +250,94 @@ class TileMap():
 #this function is a mess please dont look at it
 #im not that good at pygame ok
 def collide():
-	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, map_below2, level_id, button_pressed, offsetX, offsetY, run, move
+	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, bg, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move
 	pressed_keys = pygame.key.get_pressed()
 	collide_down = False
 	collide_up = False
 	collide_right = False
 	collide_left = False
 
+	do_collision = False
+
 	for i in list(Tilegroup.sprites()):
 
 		if not layer == 1 and (i.type == "wall3"):
-			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - 16 <= i.rect.top + 4:
-					collide_down = True
-				if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top + 16 >= i.rect.bottom - 4:
-					collide_up = True
-			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 1:
-				if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
-					collide_right = True
-				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
-					collide_left = True
-
-			if (player_rect.right, player_rect.top) == (i.rect.left+4, i.rect.bottom-4):
-				playerx -= 4
-			elif (player_rect.right, player_rect.top) == (i.rect.left+2, i.rect.bottom-2):
-				playerx -= 2
-
-			if (player_rect.left, player_rect.top) == (i.rect.right-4, i.rect.bottom-4):
-				playerx += 4
-			if (player_rect.left, player_rect.top) == (i.rect.right-2, i.rect.bottom-2):
-				playerx += 2
-
-			if (player_rect.right, player_rect.bottom) == (i.rect.left+4, i.rect.top+16+4):
-				playerx -= 4
-			if (player_rect.right, player_rect.bottom) == (i.rect.left+2, i.rect.top+16+2):
-				playerx -= 2
-
-			if (player_rect.left, player_rect.bottom) == (i.rect.left-4, i.rect.bottom+16+4):
-				playerx -= 4
-			if (player_rect.left, player_rect.bottom) == (i.rect.left-2, i.rect.bottom+16+2):
-				playerx -= 2
+			offsetY_top, offsetY_bottom = 16, 0
+			do_collision = True
 
 		# this is just any generic block collision
 		elif (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
-			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom <= i.rect.top + 4:
-					collide_down = True
-				if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top >= i.rect.bottom - 4:
-					collide_up = True
-			if i.rect.top - 31 <= player_rect.top <= i.rect.bottom - 1:
-				if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
-					collide_right = True
-				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
-					collide_left = True
-
-			
-			if (player_rect.right, player_rect.top) == (i.rect.left+4, i.rect.bottom-4):
-				playerx -= 4
-			elif (player_rect.right, player_rect.top) == (i.rect.left+2, i.rect.bottom-2):
-				playerx -= 2
-
-			if (player_rect.left, player_rect.top) == (i.rect.right-4, i.rect.bottom-4):
-				playerx += 4
-			if (player_rect.left, player_rect.top) == (i.rect.right-2, i.rect.bottom-2):
-				playerx += 2
-
-			if (player_rect.right, player_rect.bottom) == (i.rect.left+4, i.rect.top+4):
-				playerx -= 4
-			if (player_rect.right, player_rect.bottom) == (i.rect.left+2, i.rect.top+2):
-				playerx -= 2
-
-			if (player_rect.left, player_rect.bottom) == (i.rect.left-4, i.rect.bottom+4):
-				playerx -= 4
-			if (player_rect.left, player_rect.bottom) == (i.rect.left-2, i.rect.bottom+2):
-				playerx -= 2
+			offsetY_top, offsetY_bottom = 0, 0
+			do_collision = True
 		
 		elif i.type == "exit":
 			if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
 				winlvl("win")
 
 		elif i.type == "ladder" or i.type == "button":
-			if player_rect.colliderect(i.rect):
-				if i.rect.bottom+1 >= player_rect.center[1] >= i.rect.top and i.type == "ladder":
+			if i.rect.colliderect(pygame.Rect(player_rect.x, player_rect.y+1, 32, 34)):
+				if i.rect.bottom >= player_rect.bottom >= i.rect.top-1 and i.type == "ladder":
 					action = "climb"
-					if i.rect.top <= player_rect.center[1]<= i.rect.top + 32:
+					#print(i.rect.top-1, player_rect.bottom)
+					if i.rect.top-1 <= player_rect.bottom <= i.rect.top + 32 and pressed_keys[pygame.K_UP]:
 						layer = 1
 					else:
 						layer = 0
 				if i.type == "button" and button_pressed == False:
-					offsetX2, offsetY2 = offsetX, offsetY
+					offsetX_temp, offsetY_temp = offsetX, offsetY
 					offsetX, offsetY = 0, 0
 					button_pressed = True
-					map_below_temp = TileMap('levels/level'+str(level_id)+'/level'+str(level_id)+'_back2.csv', spritesheet)
-					map_below2 = map_below_temp
-					offsetX, offsetY = offsetX2, offsetY2
+					level_num = str(level_id)
+					map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
+					map_above = TileMap('levels/level'+level_num+'/level'+level_num+'_front.csv', spritesheet)
+					map_above2 = TileMap('levels/level'+level_num+'/level'+level_num+'_front2.csv', spritesheet)
+					map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
+					map_above3 = TileMap('levels/level'+level_num+'/level'+level_num+'_front3.csv', spritesheet)
+					bg = TileMap('levels/level'+level_num+'/level'+level_num+'_bg.csv', spritesheet)
+					offsetX, offsetY = offsetX_temp, offsetY_temp
 					
 
 		elif layer == 0 and i.type == "wall1":
+			offsetY_top, offsetY_bottom = 16, 16
+			do_collision = True
+
+		if (layer != 1 and i.type == "blank"):
+			do_collision = False
+
+		if i.type == "ladder" or i.type == "button" or i.type == "exit":
+			do_collision = False
+
+		if do_collision:
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
-				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - 16 <= i.rect.top + 4:
+				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - offsetY_top <= i.rect.top + 4:
 					collide_down = True
-				if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top + 16 >= i.rect.bottom - 4:
+				if pressed_keys[pygame.K_UP] and i.rect.bottom >= player_rect.top + offsetY_bottom >= i.rect.bottom - 4:
 					collide_up = True
-			if i.rect.top - 15 <= player_rect.top <= i.rect.bottom - 17:
+			if i.rect.top - 31 + offsetY_top <= player_rect.top <= i.rect.bottom - 1 - offsetY_bottom:
 				if pressed_keys[pygame.K_RIGHT] and i.rect.left <= player_rect.right <= i.rect.left + 4:
 					collide_right = True
 				if pressed_keys[pygame.K_LEFT] and i.rect.right >= player_rect.left >= i.rect.right - 4:
 					collide_left = True
 
-			if (player_rect.right, player_rect.top) == (i.rect.left+4, i.rect.bottom-16-4):
+			if (player_rect.right, player_rect.top) == (i.rect.left+4, i.rect.bottom-offsetY_bottom-4):
 				playerx -= 4
-			elif (player_rect.right, player_rect.top) == (i.rect.left+2, i.rect.bottom-16-2):
+			elif (player_rect.right, player_rect.top) == (i.rect.left+2, i.rect.bottom-offsetY_bottom-2):
 				playerx -= 2
 
-			if (player_rect.left, player_rect.top) == (i.rect.right-4, i.rect.bottom-16-4):
+			if (player_rect.left, player_rect.top) == (i.rect.right-4, i.rect.bottom-offsetY_bottom-4):
 				playerx += 4
-			if (player_rect.left, player_rect.top) == (i.rect.right-2, i.rect.bottom-16-2):
+			if (player_rect.left, player_rect.top) == (i.rect.right-2, i.rect.bottom-offsetY_bottom-2):
 				playerx += 2
 
-			if (player_rect.right, player_rect.bottom) == (i.rect.left+4, i.rect.top+16+4):
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+4, i.rect.top+offsetY_top+4):
 				playerx -= 4
-			if (player_rect.right, player_rect.bottom) == (i.rect.left+2, i.rect.top+16+2):
+			if (player_rect.right, player_rect.bottom) == (i.rect.left+2, i.rect.top+offsetY_top+2):
 				playerx -= 2
 
-			if (player_rect.left, player_rect.bottom) == (i.rect.left-4, i.rect.bottom+16+4):
+			if (player_rect.left, player_rect.bottom) == (i.rect.right-4, i.rect.top+offsetY_top+4):
 				playerx -= 4
-			if (player_rect.left, player_rect.bottom) == (i.rect.left-2, i.rect.bottom+16+2):
+			if (player_rect.left, player_rect.bottom) == (i.rect.right-2, i.rect.top+offsetY_top+2):
 				playerx -= 2
-
-
-
-				
 
 def movep():
 	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text
@@ -573,23 +530,19 @@ def update():
 def animate():
 	global direction, walksprite, player_img1, action, emote, animX, animY, playerx, playery
 	if action == "walk":
-		if direction == 0:
+		if direction == 0 or direction == 2:
 			if walksprite == 0:
 				player_img1 = pygame.image.load("assets/player/idle/side.png")
 			else:
 				player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
 
-			player_img1 = pygame.transform.flip(player_img1, True, False)
+			if direction == 0:
+				player_img1 = pygame.transform.flip(player_img1, True, False)
 		if direction == 1:
 			if walksprite == 0:
 				player_img1 = pygame.image.load("assets/player/idle/up.png")
 			else:
 				player_img1 = pygame.image.load("assets/player/walk/up"+str(walksprite)+".png")
-		if direction == 2:
-			if walksprite == 0:
-				player_img1 = pygame.image.load("assets/player/idle/side.png")
-			else:
-				player_img1 = pygame.image.load("assets/player/walk/side"+str(walksprite)+".png")
 		if direction == 3:
 			if walksprite == 0:
 				player_img1 = pygame.image.load("assets/player/idle/down.png")
@@ -678,7 +631,6 @@ def intro():
 	animate()
 	update()
 
-	# make it say 3 2 1 go or something
 	exponent, layer = 1, 1
 	animY = 625
 	player_img_load("anim/wee.png")
@@ -741,7 +693,6 @@ def titlescreen():
 		ydir = 1
 	offsetY += 1*ydir
 
-	#VERY useful bit of code
 	pressed_keys = pygame.key.get_pressed()
 	if keypress == False:
 		if pressed_keys[pygame.K_UP]:
@@ -764,7 +715,7 @@ def titlescreen():
 				if cursor == 2:
 					titletype = "options"
 				if cursor == 3:
-					titletype = "help"
+					print("not yet")
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "pause":
@@ -776,7 +727,7 @@ def titlescreen():
 				if cursor == 2:
 					titletype = "options"
 				if cursor == 3:
-					titletype = "help"
+					print("not yet")
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "lvlselect":
@@ -785,6 +736,9 @@ def titlescreen():
 					level_id = cursor+1
 					title = False
 				elif cursor == 7:
+					titletype = "title"
+			elif titletype == "options":
+				if cursor == 2:
 					titletype = "title"
 	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
 		keypress = True
@@ -795,6 +749,8 @@ def titlescreen():
 		maxcursor = 4
 	elif titletype == "lvlselect":
 		maxcursor = 7
+	elif titletype == "options":
+		maxcursor = 2
 
 	if cursor < 0:
 		cursor = maxcursor
@@ -810,10 +766,6 @@ def titlescreen():
 
 	if titletype == "title":
 		text1 = font1big.render("MAZETEST 2", True, (255, 255, 255))
-		text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
-		text1_rect = text2.get_rect()
-		text1_rect.center = (320, 128)
-		screen.blit(text2, text1_rect)
 		rendertext("Version 0.8.3", "small", (255, 255, 255), (630, 600), "topright")
 		rendertext("By Philooxy", "small", (255, 255, 255), (630, 630), "bottomright")
 
@@ -826,10 +778,6 @@ def titlescreen():
 
 	elif titletype == "pause":
 		text1 = font1big.render("Paused", True, (255, 255, 255))
-		text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
-		text1_rect = text2.get_rect()
-		text1_rect.center = (320, 128)
-		screen.blit(text2, text1_rect)
 		rendertext("MAZETEST 2 v0.8.3", "small", (255, 255, 255), (630, 630), "bottomright")
 
 		rendertext("Resume", "normal", (255, 255, 255), (120, 320), "topleft")
@@ -841,11 +789,6 @@ def titlescreen():
 
 	elif titletype == "lvlselect":
 		text1 = font1big.render("Levels", True, (255, 255, 255))
-		text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
-		text1_rect = text2.get_rect()
-		text1_rect.center = (320, 128)
-		screen.blit(text2, text1_rect)
-		rendertext("MAZETEST 2 v0.8.3", "small", (255, 255, 255), (630, 630), "bottomright")
 
 		rendertext("Level 1", "normal", (255, 255, 255), (120, 320), "topleft")
 		rendertext("Level 2", "normal", (255, 255, 255), (120, 380), "topleft")
@@ -856,6 +799,19 @@ def titlescreen():
 		rendertext("Level 7", "normal", (255, 255, 255), (320, 440), "topleft")
 		rendertext("Back", "normal", (255, 0, 0), (320, 500), "topleft")
 		rendertext("*", "normal", (255, 255, 255), (90+math.floor(cursor/4)*200, 320+60*(cursor % 4)), "topleft")
+
+	elif titletype == "options":
+		text1 = font1big.render("Options", True, (255, 255, 255))
+
+		rendertext("Volume", "normal", (255, 255, 255), (120, 320), "topleft")
+		rendertext("Fullscreen", "normal", (255, 255, 255), (120, 380), "topleft")
+		rendertext("Back", "normal", (255, 0, 0), (120, 440), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, 320+60*cursory), "topleft")
+
+	text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
+	text1_rect = text2.get_rect()
+	text1_rect.center = (320, 128)
+	screen.blit(text2, text1_rect)
 
 	pygame.display.flip()
 
@@ -886,7 +842,11 @@ while True:
 			sys.exit()
 
 	resetvars()
-	loadLevel(level_id)
+	try:
+		loadLevel(level_id)
+	except FileNotFoundError:
+		print("level not found")
+		sys.exit()
 	intro()
 	t0 = pygame.time.get_ticks()
 

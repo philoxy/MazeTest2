@@ -82,7 +82,7 @@ class Spritesheet:
     def __init__(self, filename):
         self.filename = filename
         self.sprite_sheet = pygame.image.load(filename).convert()
-        self.meta_data = self.filename.replace('png', 'json')
+        self.meta_data = "assets/spritesheet.json"
         with open(self.meta_data) as f:
             self.data = json.load(f)
         f.close()
@@ -147,6 +147,8 @@ class TileMap():
 		global level_id, button_pressed, offsetX, offsetY
 		tiles = []
 		map = self.read_csv(filename)
+		bg_filename = "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv"
+		front3_filename = "levels/level"+str(level_id)+"/level"+str(level_id)+"_front3.csv"
 		x, y = 0, 0
 		for row in map:
 			x = 0
@@ -154,7 +156,7 @@ class TileMap():
 				if tile == "0":
 					Temptile = Tile("water", x * self.tile_size, y * self.tile_size, self.spritesheet, "water")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -162,7 +164,7 @@ class TileMap():
 				elif tile == "1":
 					Temptile = Tile("wall1", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall1")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -175,7 +177,7 @@ class TileMap():
 				elif tile == "3":
 					Temptile = Tile("exit", x * self.tile_size, y * self.tile_size, self.spritesheet, "exit")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -183,7 +185,7 @@ class TileMap():
 				elif tile == "4":
 					Temptile = Tile("wall3", x * self.tile_size, y * self.tile_size, self.spritesheet, "wall3")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -201,7 +203,7 @@ class TileMap():
 				elif tile == "7":
 					Temptile = Tile("ladder", x * self.tile_size, y * self.tile_size, self.spritesheet, "ladder")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -213,7 +215,7 @@ class TileMap():
 						buttontype = "button2"
 					Temptile = Tile(buttontype, x * self.tile_size, y * self.tile_size, self.spritesheet, "button")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -221,7 +223,7 @@ class TileMap():
 				elif tile == "10":
 					Temptile = Tile("blank", x * self.tile_size, y * self.tile_size, self.spritesheet, "blank")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -233,7 +235,7 @@ class TileMap():
 						doortype = "door2"
 					Temptile = Tile(doortype, x * self.tile_size, y * self.tile_size, self.spritesheet, "door")
 					tiles.append(Temptile)
-					if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
+					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
 					else:
 						Tilegroup.add(Temptile)
@@ -246,9 +248,6 @@ class TileMap():
 
 # general functions for player
 
-
-#this function is a mess please dont look at it
-#im not that good at pygame ok
 def collide():
 	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, bg, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move
 	pressed_keys = pygame.key.get_pressed()
@@ -307,6 +306,8 @@ def collide():
 		if i.type == "ladder" or i.type == "button" or i.type == "exit":
 			do_collision = False
 
+
+
 		if do_collision:
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
 				if pressed_keys[pygame.K_DOWN] and i.rect.top <= player_rect.bottom - offsetY_top <= i.rect.top + 4:
@@ -335,9 +336,9 @@ def collide():
 				playerx -= 2
 
 			if (player_rect.left, player_rect.bottom) == (i.rect.right-4, i.rect.top+offsetY_top+4):
-				playerx -= 4
+				playerx += 4
 			if (player_rect.left, player_rect.bottom) == (i.rect.right-2, i.rect.top+offsetY_top+2):
-				playerx -= 2
+				playerx += 2
 
 def movep():
 	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text
@@ -672,7 +673,7 @@ def rendertext(text, fontsize, color, place, position):
 	screen.blit(text1, text1_rect)
 
 def titlescreen():
-	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id
+	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title
 
 	maxcursor = 1
 
@@ -713,6 +714,7 @@ def titlescreen():
 					maxcursor = 2
 					cursor = 0
 				if cursor == 2:
+					prev_title = "title"
 					titletype = "options"
 				if cursor == 3:
 					print("not yet")
@@ -725,6 +727,7 @@ def titlescreen():
 					title = False
 					winlvl("restart")
 				if cursor == 2:
+					prev_title = "pause"
 					titletype = "options"
 				if cursor == 3:
 					print("not yet")
@@ -739,7 +742,8 @@ def titlescreen():
 					titletype = "title"
 			elif titletype == "options":
 				if cursor == 2:
-					titletype = "title"
+					print(prev_title)
+					titletype = prev_title
 	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
 		keypress = True
 	else:
@@ -825,7 +829,7 @@ cursor = 0
 title_mus = pygame.mixer.music.load("assets/music/hotel1.mp3")
 pygame.mixer.music.play(-1)
 keypress = False
-titletype = "title"
+titletype, prev_title = "title", "title"
 
 while title:
 	for event in pygame.event.get():

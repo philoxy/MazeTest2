@@ -45,9 +45,10 @@ restartable = False
 ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
 shadow = False
 button_pressed = False
-level_id = 1
+level_id = 2
 cover = pygame.Surface((640,640), pygame.SRCALPHA)
 cover.fill((0,0,0,100))
+version = "0.8.3"
 
 def resetvars():
 	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed
@@ -154,6 +155,7 @@ class TileMap():
 			x = 0
 			for tile in row:
 				if tile == "0":
+					#for context this was wall2
 					Temptile = Tile("water", x * self.tile_size, y * self.tile_size, self.spritesheet, "water")
 					tiles.append(Temptile)
 					if self.filename == bg_filename or self.filename == front3_filename:
@@ -260,53 +262,47 @@ def collide():
 
 	for i in list(Tilegroup.sprites()):
 
-		if not layer == 1 and (i.type == "wall3"):
+		if layer == 0 and i.type == "wall3":
 			offsetY_top, offsetY_bottom = 16, 0
 			do_collision = True
 
-		# this is just any generic block collision
-		elif (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
-			offsetY_top, offsetY_bottom = 0, 0
-			do_collision = True
-		
-		elif i.type == "exit":
-			if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
-				winlvl("win")
-
-		elif i.type == "ladder" or i.type == "button":
-			if i.rect.colliderect(pygame.Rect(player_rect.x, player_rect.y+1, 32, 34)):
-				if i.rect.bottom >= player_rect.bottom >= i.rect.top-1 and i.type == "ladder":
-					action = "climb"
-					#print(i.rect.top-1, player_rect.bottom)
-					if i.rect.top-1 <= player_rect.bottom <= i.rect.top + 32 and pressed_keys[pygame.K_UP]:
-						layer = 1
+		if i.type == "ladder" or i.type == "button":
+			if i.rect.colliderect(pygame.Rect(player_rect.x, player_rect.y, 32, 34)):
+				do_collision = False
+				if i.rect.bottom >= player_rect.top >= i.rect.top - 33 and i.type == "ladder":
+					if i.rect.top - 17 <= player_rect.top <= i.rect.bottom:
+						action = "climb"
+					if i.rect.top - 33 <= player_rect.top <= i.rect.top:
+						if pressed_keys[pygame.K_DOWN]:
+							layer = -1
+						else:
+							layer = 1
 					else:
 						layer = 0
 				if i.type == "button" and button_pressed == False:
 					offsetX_temp, offsetY_temp = offsetX, offsetY
 					offsetX, offsetY = 0, 0
 					button_pressed = True
-					level_num = str(level_id)
-					map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
-					map_above = TileMap('levels/level'+level_num+'/level'+level_num+'_front.csv', spritesheet)
-					map_above2 = TileMap('levels/level'+level_num+'/level'+level_num+'_front2.csv', spritesheet)
-					map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
-					map_above3 = TileMap('levels/level'+level_num+'/level'+level_num+'_front3.csv', spritesheet)
-					bg = TileMap('levels/level'+level_num+'/level'+level_num+'_bg.csv', spritesheet)
-					offsetX, offsetY = offsetX_temp, offsetY_temp
-					
+					loadLevel(level_id)
 
-		elif layer == 0 and i.type == "wall1":
-			offsetY_top, offsetY_bottom = 16, 16
+		# this is just any generic block collision
+		if (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
+			offsetY_top, offsetY_bottom = 0, 0
 			do_collision = True
 
-		if (layer != 1 and i.type == "blank"):
+		if i.type == "exit":
+			if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
+				winlvl("win")
+
+		if layer == 0 and i.type == "wall1":
+			offsetY_top, offsetY_bottom = 0, 16
+			do_collision = True
+
+		if layer != 1 and i.type == "blank":
 			do_collision = False
 
 		if i.type == "ladder" or i.type == "button" or i.type == "exit":
 			do_collision = False
-
-
 
 		if do_collision:
 			if i.rect.left - 31 <= player_rect.left <= i.rect.right - 1:
@@ -497,7 +493,7 @@ def update():
 	map_below.draw_map(screen)
 	map_below2.draw_map(screen)
 
-	if layer == 1 or action == "climb":
+	if layer == 1 or action == "climb" or layer == -1:
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
 		screen.blit(player_img, pygame.Rect(288+animX, 288-animY, 32, 32))
@@ -558,8 +554,12 @@ def animate():
 	if emote == 1:
 		player_img1 = pygame.image.load("assets/player/emote/why.png")
 	elif emote == 2:
-		for i in range(3):
-			player_img1 = pygame.transform.rotate(player_img1, 90)
+		player_img_temp = player_img1
+		player_img_temp.set_colorkey((255, 0, 208))
+		for i in range(300):
+			player_img_temp = pygame.transform.rotate(player_img_temp, 90*math.floor(i/100))
+			player_img = player_img_temp
+			update()
 
 	player_img1.set_colorkey((255, 0, 208))
 	player_img = player_img1
@@ -673,7 +673,7 @@ def rendertext(text, fontsize, color, place, position):
 	screen.blit(text1, text1_rect)
 
 def titlescreen():
-	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title
+	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title, version
 
 	maxcursor = 1
 
@@ -742,7 +742,6 @@ def titlescreen():
 					titletype = "title"
 			elif titletype == "options":
 				if cursor == 2:
-					print(prev_title)
 					titletype = prev_title
 	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
 		keypress = True
@@ -770,7 +769,7 @@ def titlescreen():
 
 	if titletype == "title":
 		text1 = font1big.render("MAZETEST 2", True, (255, 255, 255))
-		rendertext("Version 0.8.3", "small", (255, 255, 255), (630, 600), "topright")
+		rendertext("Version "+version, "small", (255, 255, 255), (630, 600), "topright")
 		rendertext("By Philooxy", "small", (255, 255, 255), (630, 630), "bottomright")
 
 		rendertext("Play", "normal", (255, 255, 255), (120, 320), "topleft")
@@ -782,7 +781,7 @@ def titlescreen():
 
 	elif titletype == "pause":
 		text1 = font1big.render("Paused", True, (255, 255, 255))
-		rendertext("MAZETEST 2 v0.8.3", "small", (255, 255, 255), (630, 630), "bottomright")
+		rendertext("MAZETEST 2 v"+version, "small", (255, 255, 255), (630, 630), "bottomright")
 
 		rendertext("Resume", "normal", (255, 255, 255), (120, 320), "topleft")
 		rendertext("Restart", "normal", (255, 255, 255), (120, 380), "topleft")

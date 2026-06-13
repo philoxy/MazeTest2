@@ -5,7 +5,8 @@ import pygame, sys, csv, os, json, math
 
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((640, 640), vsync=1)
+screen = pygame.display.set_mode((640, 640), pygame.SCALED|pygame.HWSURFACE, vsync=1) 
+pygame.display.toggle_fullscreen()
 
 icon = pygame.image.load("assets/icon.png")
 icon.set_colorkey((255,0,208))
@@ -45,10 +46,11 @@ restartable = False
 ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
 shadow = False
 button_pressed = False
-level_id = 2
+level_id = 1
 cover = pygame.Surface((640,640), pygame.SRCALPHA)
 cover.fill((0,0,0,100))
-version = "0.8.3"
+version = "0.8.4"
+volume = 1
 
 def resetvars():
 	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed
@@ -298,10 +300,7 @@ def collide():
 			offsetY_top, offsetY_bottom = 0, 16
 			do_collision = True
 
-		if layer != 1 and i.type == "blank":
-			do_collision = False
-
-		if i.type == "ladder" or i.type == "button" or i.type == "exit":
+		if i.type == "ladder" or i.type == "button" or i.type == "exit" or (layer != 1 and i.type == "blank") or (layer == 1 and i.type == "wall3"):
 			do_collision = False
 
 		if do_collision:
@@ -337,7 +336,7 @@ def collide():
 				playerx += 2
 
 def movep():
-	global playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text
+	global volume, playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text
 	addwalk, run = False, False
 	pressed_keys = pygame.key.get_pressed()
 
@@ -371,13 +370,9 @@ def movep():
 			addwalk = True
 
 	if pressed_keys[pygame.K_r] and restartable == True:
-		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()/4)
 		winlvl("restart")
-		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()*4)
 	elif pressed_keys[pygame.K_ESCAPE] and restartable == True:
-		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()/4)
 		winlvl("exit")
-		pygame.mixer.music.set_volume(pygame.mixer.music.get_volume()*4)
 
 	if addwalk == True:
 		if run == False:
@@ -404,7 +399,7 @@ def movep():
 	offsetY = playery
 
 def loadLevel(level_num):
-	global spritesheet, map_below, map_above, map_below2, map_above2, map_above3, level_mus, bg, songname, levelname, topright_text, shadow
+	global volume, spritesheet, map_below, map_above, map_below2, map_above2, map_above3, level_mus, bg, songname, levelname, topright_text, shadow
 	level_num = str(level_num)
 	spritesheet = Spritesheet('levels/level'+level_num+'/spritesheet.png')
 	map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
@@ -425,7 +420,7 @@ def loadLevel(level_num):
 			shadow = False
 	level_mus = pygame.mixer.music.load("assets/music/level"+level_num+".mp3")
 	pygame.mixer.music.play(-1)
-	pygame.mixer.music.set_volume(0.1)
+	pygame.mixer.music.set_volume(0.1*volume)
 
 def player_img_load(image_path):
 	global player_img1
@@ -442,7 +437,7 @@ def winlvl(type):
 	if type == "win":
 		tada = pygame.mixer.Sound("assets/sounds/tada.mp3")
 		channel = tada.play()
-		tada.set_volume(0.5)
+		tada.set_volume(0.5*volume)
 	exponent, timery = 1, 1
 	if not type == "exit":
 		player_img_temp = player_img1
@@ -673,7 +668,7 @@ def rendertext(text, fontsize, color, place, position):
 	screen.blit(text1, text1_rect)
 
 def titlescreen():
-	global offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title, version
+	global volume, offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title, version
 
 	maxcursor = 1
 
@@ -687,12 +682,12 @@ def titlescreen():
 		xdir = -1
 	elif offsetX <= +192:
 		xdir = 1
-	offsetX += 1*xdir
+	offsetX += 0.5*xdir
 	if offsetY >= map_below.map_surface.get_size()[1]-192:
 		ydir = -1
 	elif offsetY <= +192:
 		ydir = 1
-	offsetY += 1*ydir
+	offsetY += 0.5*ydir
 
 	pressed_keys = pygame.key.get_pressed()
 	if keypress == False:
@@ -705,6 +700,16 @@ def titlescreen():
 				cursor -= 4
 			elif pressed_keys[pygame.K_RIGHT]:
 				cursor += 4
+		elif titletype == "options" and cursor == 0:
+			if pressed_keys[pygame.K_LEFT]:
+				volume -= 0.1
+			elif pressed_keys[pygame.K_RIGHT]:
+				volume += 0.1
+			if volume > 1:
+				volume = 1
+			if volume < 0:
+				volume = 0
+			volume = int(round(volume*10))/10
 		if pressed_keys[pygame.K_z]:
 			if titletype == "title":
 				if cursor == 0:
@@ -734,15 +739,19 @@ def titlescreen():
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "lvlselect":
-				if cursor != 7:
+				# temporary if statement until i make al lthe levels
+				if cursor == 0 or cursor == 1:
 					offsetX, offsetY = 0, 0
 					level_id = cursor+1
 					title = False
 				elif cursor == 7:
 					titletype = "title"
 			elif titletype == "options":
+				if cursor == 1:
+					pygame.display.toggle_fullscreen()
 				if cursor == 2:
 					titletype = prev_title
+					cursor = 0
 	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
 		keypress = True
 	else:
@@ -806,8 +815,13 @@ def titlescreen():
 	elif titletype == "options":
 		text1 = font1big.render("Options", True, (255, 255, 255))
 
-		rendertext("Volume", "normal", (255, 255, 255), (120, 320), "topleft")
-		rendertext("Fullscreen", "normal", (255, 255, 255), (120, 380), "topleft")
+		if pygame.display.is_fullscreen() == True:
+			fullscreen_status = "On"
+		else:
+			fullscreen_status = "Off"
+
+		rendertext("Volume: "+str(volume*100)+"%", "normal", (255, 255, 255), (120, 320), "topleft")
+		rendertext("Fullscreen: "+fullscreen_status, "normal", (255, 255, 255), (120, 380), "topleft")
 		rendertext("Back", "normal", (255, 0, 0), (120, 440), "topleft")
 		rendertext("*", "normal", (255, 255, 255), (90, 320+60*cursory), "topleft")
 
@@ -815,6 +829,8 @@ def titlescreen():
 	text1_rect = text2.get_rect()
 	text1_rect.center = (320, 128)
 	screen.blit(text2, text1_rect)
+
+	pygame.mixer.music.set_volume(0.1*volume)
 
 	pygame.display.flip()
 

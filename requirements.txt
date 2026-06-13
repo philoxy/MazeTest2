@@ -1,0 +1,7 @@
+altgraph==0.17.5
+Nuitka==4.1.2
+packaging==26.2
+pygame-ce==2.5.7
+pyinstaller==6.20.0
+pyinstaller-hooks-contrib==2026.6
+setuptools==82.0.1

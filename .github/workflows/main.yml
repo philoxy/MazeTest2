@@ -31,7 +31,7 @@ jobs:
         run: ls -la
 
       - name: Build executable
-        run: pyinstaller main.py --add-data assets:assets --add-data levels:levels --onefile
+        run: pyinstaller main.py --add-data assets:assets --add-data levels:levels
 
       - name: Rename executable
         run: |
@@ -52,6 +52,9 @@ jobs:
 
       - name: List files (debugging)
         run: ls -la
+
+      - name: List files (again)
+        run: ls -la dist/
 
   release:
     needs: build

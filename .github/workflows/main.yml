@@ -30,6 +30,8 @@ jobs:
       - name: Build executable
         run: pyinstaller main.py --add-data assets:assets --add-data levels:levels
 
+      - name: List files (windows debugging)
+
       - name: Rename executable
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -66,11 +68,11 @@ jobs:
           mv assets dist/assets
           mv levels dist/levels
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            Compress-Archive dist mazetest-win.zip
+            Compress-Archive dist mazetest2-win.zip
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
-            zip -r mazetest-linux.zip dist/
+            zip -r mazetest2-linux.zip dist/
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            zip -r mazetest-mac.zip dist/
+            zip -r mazetest2-mac.zip dist/
           fi
           ls -R
 

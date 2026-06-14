@@ -84,6 +84,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: mazetest2-files.zip
+          path: .
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v8

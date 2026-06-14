@@ -53,11 +53,6 @@ jobs:
       - name: List files (debugging)
         run: ls -la
 
-  release:
-    needs: build
-    runs-on: ${{ matrix.os }}
-
-    steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 

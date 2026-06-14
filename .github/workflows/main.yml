@@ -36,7 +36,7 @@ jobs:
       - name: Rename executable
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            mv dist/main.exe dist/mazetest2-win.exe
+            mv dist/main/main.exe dist/mazetest2-win.exe
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             mv dist/main dist/mazetest2-linux
           elif [[ "$RUNNER_OS" == "macOS" ]]; then

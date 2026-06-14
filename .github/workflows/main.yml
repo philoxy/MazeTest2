@@ -75,6 +75,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             zip -r mazetest-mac.zip dist/
           fi
+          ls -R
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

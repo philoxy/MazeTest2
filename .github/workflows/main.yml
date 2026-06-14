@@ -84,7 +84,7 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            dist/mazetest2-linux
-            dist/mazetest2-win.exe
-            dist/mazetest2-mac
+            ./mazetest2-linux
+            ./mazetest2-win.exe
+            ./mazetest2-mac
             ./mazetest2-files.zip

@@ -1,4 +1,4 @@
-name: Build Binaries
+name: Build and Release Binaries
 
 on:
   workflow_dispatch:
@@ -51,11 +51,16 @@ jobs:
           path: dist/*
 
 
-  download:
+  release:
     if: ${{ always() }}
     needs: build
     runs-on: ubuntu-latest
     steps:
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
 
       - name: List downloaded files (Debugging)
         run: ls -R

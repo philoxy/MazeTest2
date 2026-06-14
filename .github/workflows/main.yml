@@ -50,9 +50,6 @@ jobs:
           name: mazetest2-${{ matrix.os }}
           path: dist/*
 
-      - name: List files (debugging)
-        run: ls -la
-
       - name: Download all build artifacts
         uses: actions/download-artifact@v8
         with:

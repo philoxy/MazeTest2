@@ -63,7 +63,7 @@ jobs:
           merge-multiple: true
 
       - name: List downloaded files (Debugging)
-        run: ls -R
+        run: ls
 
       - name: Pack game files
         run: |

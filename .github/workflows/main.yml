@@ -53,9 +53,6 @@ jobs:
       - name: List files (debugging)
         run: ls -la
 
-      - name: List files (again)
-        run: ls -la dist/
-
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -75,6 +72,18 @@ jobs:
       - name: Make files executable (Linux/Mac)
         run: chmod +x mazetest2-* || true
 
+      - name: Pack game files
+        run: |
+          mv assets dist/assets
+          mv levels dist/levels
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            Compress-Archive dist mazetest-win.zip
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            zip -r mazetest-linux.zip dist/
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            zip -r mazetest-mac.zip dist/
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -83,6 +92,6 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            mazetest2-linux
-            mazetest2-win.exe
-            mazetest2-mac
+            mazetest2-linux.zip
+            mazetest2-win.zip
+            mazetest2-mac.zip

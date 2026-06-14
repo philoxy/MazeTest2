@@ -50,6 +50,9 @@ jobs:
           name: mazetest2-${{ matrix.os }}
           path: dist/*
 
+      - name: List files (debugging)
+        run: ls -la
+
   release:
     needs: build
     runs-on: ubuntu-latest

@@ -67,15 +67,10 @@ jobs:
 
       - name: Pack game files
         run: |
-          mv assets dist/assets
-          mv levels dist/levels
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            zip -r mazetest2-win.zip dist/
-          elif [[ "$RUNNER_OS" == "Linux" ]]; then
-            zip -r mazetest2-linux.zip dist/
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            zip -r mazetest2-mac.zip dist/
-          fi
+          mkdir mazetest2
+          mv assets mazetest2/assets
+          mv levels mazetest2/levels
+          zip -r mazetest2.zip mazetest2/
         shell: bash
 
       - name: Make files executable (Linux/Mac)
@@ -89,6 +84,7 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            mazetest2-linux.zip
-            mazetest2-win.zip
-            mazetest2-mac.zip
+            mazetest2-linux
+            mazetest2-win
+            mazetest2-mac
+            mazetest2.zip

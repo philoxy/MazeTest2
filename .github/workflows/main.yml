@@ -50,23 +50,10 @@ jobs:
           name: mazetest2-${{ matrix.os }}
           path: dist/*
 
-
-  release:
-    if: ${{ always() }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-
       - name: Download all build artifacts
         uses: actions/download-artifact@v8
         with:
           merge-multiple: true
-
-      - name: List downloaded files (Debugging)
-        run: ls -R
-
-      - name: Make files executable (Linux/Mac)
-        run: chmod +x mazetest2-* || true
 
       - name: Pack game files
         run: |
@@ -79,6 +66,19 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             zip -r mazetest2-mac.zip dist/
           fi
+
+
+  release:
+    if: ${{ always() }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: List downloaded files (Debugging)
+        run: ls -R
+
+      - name: Make files executable (Linux/Mac)
+        run: chmod +x mazetest2-* || true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

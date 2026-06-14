@@ -66,6 +66,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             zip -r mazetest2-mac.zip dist/
           fi
+        shell: bash
 
 
   release:

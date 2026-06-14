@@ -50,6 +50,13 @@ jobs:
           name: mazetest2-${{ matrix.os }}
           path: dist/*
 
+  release:
+    if: ${{ always() }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+    
       - name: Download all build artifacts
         uses: actions/download-artifact@v8
         with:
@@ -60,7 +67,6 @@ jobs:
           mv assets dist/assets
           mv levels dist/levels
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            apt install zip
             zip -r mazetest2-win.zip dist/
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             zip -r mazetest2-linux.zip dist/
@@ -68,13 +74,6 @@ jobs:
             zip -r mazetest2-mac.zip dist/
           fi
         shell: bash
-
-
-  release:
-    if: ${{ always() }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
 
       - name: List downloaded files (Debugging)
         run: ls -R

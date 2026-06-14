@@ -30,7 +30,7 @@ jobs:
       - name: Build executable
         run: pyinstaller main.py --add-data assets:assets --add-data levels:levels
 
-      - name: List files (windows debugging)
+      - name: List files
         run: ls -R
 
       - name: Rename executable
@@ -70,7 +70,7 @@ jobs:
           mkdir mazetest2
           mv main/_internal/assets mazetest2/assets
           mv main/_internal/levels mazetest2/levels
-          zip -r mazetest2.zip mazetest2/
+          zip -r mazetest2-files.zip mazetest2/
         shell: bash
 
       - name: Make files executable (Linux/Mac)
@@ -84,7 +84,7 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            mazetest2-linux
-            mazetest2-win
-            mazetest2-mac
-            mazetest2.zip
+            dist/mazetest2-linux
+            dist/mazetest2-win.exe
+            dist/mazetest2-mac
+            ./mazetest2-files.zip

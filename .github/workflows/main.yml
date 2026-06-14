@@ -72,18 +72,33 @@ jobs:
       - name: Pack game files
         run: |
           mkdir mazetest2
-          mv main/_internal/assets mazetest2/assets
-          mv main/_internal/levels mazetest2/levels
-          zip -r mazetest2-files.zip mazetest2/
-          zip -u mazetest2-files.zip mazetest2-linux
-          zip -u mazetest2-files.zip mazetest2-mac
-          zip -u mazetest2-files.zip mazetest2-win.exe
+          mkdir mazetest2/win
+          mkdir mazetest2/linux
+          mkdir mazetest2/mac
+
+          mv main/_internal/assets mazetest2/win/assets
+          cp mazetest2/win/assets mazetest2/linux/assets
+          cp mazetest2/linux/assets mazetest2/mac/assets
+
+          mv main/_internal/levels mazetest2/win/levels
+          cp mazetest2/win/levels mazetest2/linux/levels
+          cp mazetest2/linux/levels mazetest2/mac/levels
+
+          mv main/_internal mazetest2/win/_internal
+          mv mazetest2-mac/_internal mazetest2/mac/_internal
+          mv mazetest2-linux/_internal mazetest2/linux/_internal
+
+          mv mazetest2-win.exe mazetest2/win/mazetest2-win.exe
+          mv mazetest2-linux/main mazetest2/linux/mazetest2-linux
+          mv mazetest2-mac/main mazetest2/mac/mazetest2-mac
+
+          zip -r mazetest2.zip mazetest2/
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mazetest2-files.zip
+          name: mazetest2.zip
           path: .
 
       - name: Download all build artifacts
@@ -100,7 +115,4 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            ./mazetest2-linux
-            ./mazetest2-win.exe
-            ./mazetest2-mac
-            ./mazetest2-files.zip
+            ./mazetest2.zip

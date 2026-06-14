@@ -52,6 +52,8 @@ jobs:
 
 
   release:
+    if: ${{ always() }}
+    needs: build
     runs-on: ${{ matrix.os }}
     steps:
 

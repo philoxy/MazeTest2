@@ -54,7 +54,7 @@ jobs:
   release:
     if: ${{ always() }}
     needs: build
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
 
       - name: Download all build artifacts

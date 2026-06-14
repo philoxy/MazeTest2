@@ -1,65 +1,79 @@
-name: Build Executables
+name: Build and Release Executables
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Enter the version (e.g., v1.0.0)"
+        required: true
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
-        os: ['windows-latest', 'ubuntu-latest', 'macos-latest']
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
-    env:
-      MAIN_PY_FILE: 'main.py'  # Define the path to your main.py file here
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: 3.10.x
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
 
-    - name: Install Python dependencies
-      run: |
-        pip install -r requirements.txt
-      working-directory: ./
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Install PyInstaller
-      run: |
-        pip install pyinstaller
-      working-directory: ./
+      - name: Build executable
+        run: pyinstaller --onefile main.py
 
-    - name: Build executable
-      run: |
-        pyinstaller ${{ env.MAIN_PY_FILE }} --add-data assets:assets --add-data levels:levels --onefile
-      working-directory: ./
+      - name: Rename executable
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv dist/main.exe dist/mazetest2-win.exe
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            mv dist/main dist/mazetest2-linux
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            mv dist/main dist/mazetest2-mac
+          fi
+        shell: bash
 
-    - name: Create Artifact (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v7
-      with:
-        name: windows-executables
-        path: dist/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: mazetest2-${{ matrix.os }}
+          path: dist/*
 
-    - name: Create Artifact (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v7
-      with:
-        name: linux-executables
-        path: dist/
+  release:
+    needs: build
+    runs-on: ubuntu-latest
 
-    - name: Create Artifact (macOS)
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v7
-      with:
-        name: macos-executables
-        path: dist/
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: List files in dist folder
-      run: ls -R ./dist/
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
+
+      - name: List downloaded files (Debugging)
+        run: ls -R
+
+      - name: Make files executable (Linux/Mac)
+        run: chmod +x mazetest2-* || true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: MazeTest 2 ${{ github.event.inputs.version }}
+          draft: true
+          prerelease: false
+          files: |
+            mazetest2-linux
+            mazetest2-win.exe
+            mazetest2-mac

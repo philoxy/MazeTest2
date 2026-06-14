@@ -62,6 +62,9 @@ jobs:
         with:
           merge-multiple: true
 
+      - name: List downloaded files (Debugging)
+        run: ls -R
+
       - name: Pack game files
         run: |
           mv assets dist/assets
@@ -74,9 +77,6 @@ jobs:
             zip -r mazetest2-mac.zip dist/
           fi
         shell: bash
-
-      - name: List downloaded files (Debugging)
-        run: ls -R
 
       - name: Make files executable (Linux/Mac)
         run: chmod +x mazetest2-* || true

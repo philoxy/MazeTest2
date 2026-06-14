@@ -60,6 +60,7 @@ jobs:
           mv assets dist/assets
           mv levels dist/levels
           if [[ "$RUNNER_OS" == "Windows" ]]; then
+            sudo apt install zip
             zip -r mazetest2-win.zip dist/
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             zip -r mazetest2-linux.zip dist/

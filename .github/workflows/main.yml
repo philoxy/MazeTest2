@@ -68,8 +68,8 @@ jobs:
       - name: Pack game files
         run: |
           mkdir mazetest2
-          mv assets mazetest2/assets
-          mv levels mazetest2/levels
+          mv main/_internal/assets mazetest2/assets
+          mv main/_internal/levels mazetest2/levels
           zip -r mazetest2.zip mazetest2/
         shell: bash
 

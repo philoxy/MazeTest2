@@ -31,7 +31,7 @@ jobs:
         run: pyinstaller main.py --add-data assets:assets --add-data levels:levels
 
       - name: List files
-        run: ls -R
+        run: ls
 
       - name: Rename executable
         run: |

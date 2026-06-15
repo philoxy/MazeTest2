@@ -52,6 +52,7 @@ jobs:
           mv assets files/assets
           mv levels files/levels
           zip -r files.zip files
+        shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7

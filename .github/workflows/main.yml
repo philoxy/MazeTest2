@@ -39,19 +39,15 @@ jobs:
             mv dist/main.exe dist/mazetest2-win.exe
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             mv dist/main dist/mazetest2-linux
+            mkdir files
+            mv assets files/assets
+            mv levels files/levels
+            zip -r files.zip files
           elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
             mv dist/main dist/mazetest2-mac
           elif [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
             mv dist/main dist/mazetest2-mac-intel
           fi
-        shell: bash
-
-      - name: Upload game files
-        run: |
-          mkdir files
-          mv assets files/assets
-          mv levels files/levels
-          zip -r files.zip files
         shell: bash
 
       - name: Upload artifact

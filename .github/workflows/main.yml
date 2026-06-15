@@ -82,8 +82,8 @@ jobs:
         run: |
           mkdir mazetest2
 
-          mv main/files/assets mazetest2/assets
-          mv main/files/levels mazetest2/levels
+          mv assets mazetest2/assets
+          mv levels mazetest2/levels
 
           mv mazetest2-win.exe mazetest2/mazetest2-win.exe
           mv mazetest2-linux mazetest2/mazetest2-linux

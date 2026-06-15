@@ -11,7 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-15, macos-15-intel]
 
     runs-on: ${{ matrix.os }}
 
@@ -39,8 +39,10 @@ jobs:
             mv dist/main/main.exe dist/mazetest2-win.exe
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             mv dist/main dist/mazetest2-linux
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
             mv dist/main dist/mazetest2-mac
+          elif [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
+            mv dist/main dist/mazetest2-mac-intel
           fi
         shell: bash
 

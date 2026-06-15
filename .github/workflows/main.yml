@@ -90,8 +90,10 @@ jobs:
           mv mazetest2-win.exe mazetest2/win/mazetest2-win.exe
           mv mazetest2-linux/main mazetest2/linux/mazetest2-linux
           mv mazetest2-mac/main mazetest2/mac/mazetest2-mac
+          mv mazetest2-mac-intel/main mazetest2/mac/mazetest2-mac-intel
 
           chmod +x mazetest2/mac/mazetest2-mac || true
+          chmod +x mazetest2/mac/mazetest2-mac-intel || true
           chmod +x mazetest2/linux/mazetest2-linux || true
 
           zip -r mazetest2.zip mazetest2/

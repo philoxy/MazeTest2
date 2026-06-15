@@ -28,7 +28,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build executable
-        run: pyinstaller main.py --add-data assets:assets --add-data levels:levels
+        run: pyinstaller main.py --add-data assets:assets --add-data levels:levels --onefile
 
       - name: List files
         run: ls -R

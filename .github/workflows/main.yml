@@ -55,6 +55,12 @@ jobs:
         with:
           name: mazetest2-${{ matrix.os }}
           path: dist/*
+  
+      - name: Upload game files
+        uses: actions/upload-artifact@v7
+        with:
+          name: files.zip
+          path: .
 
 
   release:

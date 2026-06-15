@@ -66,9 +66,6 @@ jobs:
       - name: List downloaded files (Debugging)
         run: ls -R
 
-      - name: Make files executable (Linux/Mac)
-        run: chmod +x mazetest2-* || true
-
       - name: Pack game files
         run: |
           mkdir mazetest2
@@ -91,6 +88,9 @@ jobs:
           mv mazetest2-win.exe mazetest2/win/mazetest2-win.exe
           mv mazetest2-linux/main mazetest2/linux/mazetest2-linux
           mv mazetest2-mac/main mazetest2/mac/mazetest2-mac
+
+          chmod +x mazetest2/mac/mazetest2-mac || true
+          chmod +x mazetest2/linux/mazetest2-linux || true
 
           zip -r mazetest2.zip mazetest2/
         shell: bash

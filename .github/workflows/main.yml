@@ -93,30 +93,12 @@ jobs:
           chmod +x mazetest2-mac-intel/mazetest2-mac-intel || true
           chmod +x mazetest2-linux/mazetest2-linux || true
 
-          mkdir releases
-
-          zip -r releases/mazetest2-win.zip mazetest2-win/
-          zip -r releases/mazetest2-linux.zip mazetest2-linux/
-          zip -r releases/mazetest2-mac.zip mazetest2-mac/
-          zip -r releases/mazetest2-mac-intel.zip mazetest2-mac-intel/
-          ls
+          zip -r mazetest2-win.zip mazetest2-win/
+          zip -r mazetest2-linux.zip mazetest2-linux/
+          zip -r mazetest2-mac.zip mazetest2-mac/
+          zip -r mazetest2-mac-intel.zip mazetest2-mac-intel/
 
         shell: bash
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: releases
-          path: .
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v8
-        with:
-          merge-multiple: true
-          path: .
-
-      - name: List downloaded files (Debugging)
-        run: ls -R
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

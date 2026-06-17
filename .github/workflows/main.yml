@@ -70,21 +70,17 @@ jobs:
 
       - name: Pack game files
         run: |
-          mkdir mazetest2
           mkdir mazetest2-win
-          mkdir mazetest2-linux
-          mkdir mazetest2-mac
-          mkdir mazetest2-mac-intel
 
           mv main/_internal/assets mazetest2-win/assets
-          cp -r main/_internal/assets mazetest2-linux/assets
-          cp -r main/_internal/assets mazetest2-mac/assets
-          cp -r main/_internal/assets mazetest2-mac-intel/assets
+          mv mazetest2-linux/_internal/assets mazetest2-linux/assets
+          mv mazetest2-mac/_internal/assets mazetest2-mac/assets
+          mv mazetest2-mac-intel/_internal/assets mazetest2-mac-intel/assets
 
-          mv main/_internal/levels mazetest2/win/levels
-          cp -r main/_internal/levels mazetest2-linux/levels
-          cp -r main/_internal/levels mazetest2-mac/levels
-          cp -r main/_internal/levels mazetest2-mac-intel/levels
+          mv main/_internal/levels mazetest2-win/levels
+          mv mazetest2-linux/_internal/levels mazetest2-linux/levels
+          mv mazetest2-mac/_internal/levels mazetest2-mac/levels
+          mv mazetest2-mac-intel/_internal/levels mazetest2-mac-intel/levels
 
           mv main/_internal mazetest2-win/_internal
 

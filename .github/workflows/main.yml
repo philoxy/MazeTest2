@@ -28,7 +28,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build executable
-        run: pyinstaller main.py --add-data assets:assets --add-data levels:levels --onefile
+        run: pyinstaller main.py --add-data assets:assets --add-data levels:levels
 
       - name: List files
         run: ls -R
@@ -36,13 +36,9 @@ jobs:
       - name: Rename executable
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            mv dist/main.exe dist/mazetest2-win.exe
+            mv dist/main/main.exe dist/mazetest2-win.exe
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             mv dist/main dist/mazetest2-linux
-            mkdir files
-            mv assets files/assets
-            mv levels files/levels
-            zip -r files.zip files
           elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
             mv dist/main dist/mazetest2-mac
           elif [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
@@ -55,12 +51,6 @@ jobs:
         with:
           name: mazetest2-${{ matrix.os }}
           path: dist/*
-  
-      - name: Upload game files
-        uses: actions/upload-artifact@v7
-        with:
-          name: files.zip
-          path: .
 
 
   release:
@@ -81,26 +71,42 @@ jobs:
       - name: Pack game files
         run: |
           mkdir mazetest2
+          mkdir mazetest2-win
+          mkdir mazetest2-linux
+          mkdir mazetest2-mac
+          mkdir mazetest2-mac-intel
 
-          mv assets mazetest2/assets
-          mv levels mazetest2/levels
+          mv main/_internal/assets mazetest2-win/assets
+          cp -r main/_internal/assets mazetest2-linux/assets
+          cp -r main/_internal/assets mazetest2-mac/assets
+          cp -r main/_internal/assets mazetest2-mac-intel/assets
 
-          mv mazetest2-win.exe mazetest2/mazetest2-win.exe
-          mv mazetest2-linux mazetest2/mazetest2-linux
-          mv mazetest2-mac mazetest2/mazetest2-mac
-          mv mazetest2-mac-intel mazetest2/mazetest2-mac-intel
+          mv main/_internal/levels mazetest2/win/levels
+          cp -r main/_internal/levels mazetest2-linux/levels
+          cp -r main/_internal/levels mazetest2-mac/levels
+          cp -r main/_internal/levels mazetest2-mac-intel/levels
 
-          chmod +x mazetest2/mazetest2-mac || true
-          chmod +x mazetest2/mazetest2-mac-intel || true
-          chmod +x mazetest2/mazetest2-linux || true
+          mv main/_internal mazetest2-win/_internal
 
-          zip -r mazetest2.zip mazetest2/
+          mv mazetest2-win.exe mazetest2-win/mazetest2-win.exe
+          mv mazetest2-linux/main mazetest2-linux/mazetest2-linux
+          mv mazetest2-mac/main mazetest2-mac/mazetest2-mac
+          mv mazetest2-mac-intel/main mazetest2-mac-intel/mazetest2-mac-intel
+
+          chmod +x mazetest2-mac/mazetest2-mac || true
+          chmod +x mazetest2-mac-intel/mazetest2-mac-intel || true
+          chmod +x mazetest2-linux/mazetest2-linux || true
+
+          zip -r mazetest2-win.zip mazetest2-win/
+          zip -r mazetest2-linux.zip mazetest2-linux/
+          zip -r mazetest2-mac.zip mazetest2-mac/
+          zip -r mazetset2-mac-intel.zip mazetest2-mac-intel/
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mazetest2.zip
+          name: mazetest2-*
           path: .
 
       - name: Download all build artifacts
@@ -117,4 +123,8 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            ./mazetest2.zip
+            ./mazetest2-win.zip
+            ./mazetest2-mac.zip
+            ./mazetest2-mac-intel.zip
+            ./mazetest2-linux.zip
+            

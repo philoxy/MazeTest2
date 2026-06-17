@@ -16,14 +16,12 @@ NOTE: macOS and macOS Intel versions don't work yet, as they require code signin
 
 ## To-do list
 * more levels
-* dialogue boxes?
+* dialogue
 * emotes
-* <s>fullscreen</s>
 * more animations
 * help menu
     * tutorial on how to play
         * controls
     * level guide
-* <s>compile game so that anyone can play it</s>
 * random cool features i feel like adding
-* <s>fixing that stupid corner clipping bug</s>
+* fix ladder bug

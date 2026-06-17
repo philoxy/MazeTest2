@@ -5,8 +5,9 @@ import pygame, sys, csv, os, json, math
 
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((640, 640), pygame.SCALED|pygame.HWSURFACE, vsync=1) 
-pygame.display.toggle_fullscreen()
+WIDTH = 640
+HEIGHT = 640
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.SCALED, vsync=1) 
 
 icon = pygame.image.load("assets/icon.png")
 icon.set_colorkey((255,0,208))
@@ -15,7 +16,7 @@ pygame.display.set_icon(icon)
 pygame.mixer.init()
 clock = pygame.time.Clock()
 
-font1 = pygame.font.Font('assets/determination.ttf', 26)
+font1 = pygame.font.Font('assets/determination.ttf', 24)
 font1small = pygame.font.Font('assets/determination.ttf', 12)
 font1big = pygame.font.Font('assets/determination.ttf', 80)
 
@@ -23,8 +24,8 @@ Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()
 player_img1 = icon
 
-playerx = 112
-playery = 224
+playerx = WIDTH/2-208
+playery = HEIGHT/2-96
 player_rect = pygame.Rect(playerx, playery, 32, 32)
 collide_down, collide_up, collide_right, collide_left = False, False, False, False
 offsetX = 0
@@ -35,8 +36,8 @@ walk = 0
 addwalk = False
 walksprite = 0
 direction = 3
-t0, t1 = 0, 0
 # 0 left 1 up 2 right 3 down
+t0, t1 = 0, 0
 move = 2
 layer = 0
 emote = 0
@@ -47,13 +48,13 @@ ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, F
 shadow = False
 button_pressed = False
 level_id = 1
-cover = pygame.Surface((640,640), pygame.SRCALPHA)
+cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
 cover.fill((0,0,0,100))
-version = "0.8.4"
+version = "0.8.5"
 volume = 1
 
 def resetvars():
-	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed
+	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed, cover
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
@@ -78,6 +79,8 @@ def resetvars():
 	ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2 = False, False, False, False, False
 	shadow = False
 	button_pressed = False
+	cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
+	cover.fill((0,0,0,100))
 
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
@@ -130,9 +133,9 @@ class TileMap():
 	def draw_map(self, surface):
 		global offsetX, offsetY, level_id, playerx, playery
 		if self.filename == "levels/level"+str(level_id)+"/level"+str(level_id)+"_bg.csv":
-			surface.blit(self.map_surface, (-(offsetX % 128)-48, -(offsetY % 128)))
+			surface.blit(self.map_surface, (-(offsetX % 128)-48, -(offsetY % 128)-32))
 		else:
-			surface.blit(self.map_surface, (336-offsetX, 320-offsetY))
+			surface.blit(self.map_surface, ((WIDTH/2+16)-offsetX, HEIGHT/2-offsetY))
 
 	def load_map(self):
 		for tile in self.tiles:
@@ -253,7 +256,7 @@ class TileMap():
 # general functions for player
 
 def collide():
-	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, bg, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move
+	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move
 	pressed_keys = pygame.key.get_pressed()
 	collide_down = False
 	collide_up = False
@@ -271,7 +274,7 @@ def collide():
 		if i.type == "ladder" or i.type == "button":
 			if i.rect.colliderect(pygame.Rect(player_rect.x, player_rect.y, 32, 34)):
 				do_collision = False
-				if i.rect.bottom >= player_rect.top >= i.rect.top - 33 and i.type == "ladder":
+				if i.rect.bottom >= player_rect.top >= i.rect.top - 33 and i.rect.left + 34 >= player_rect.left >= i.rect.left and i.type == "ladder":
 					if i.rect.top - 17 <= player_rect.top <= i.rect.bottom:
 						action = "climb"
 					if i.rect.top - 33 <= player_rect.top <= i.rect.top:
@@ -285,10 +288,15 @@ def collide():
 					offsetX_temp, offsetY_temp = offsetX, offsetY
 					offsetX, offsetY = 0, 0
 					button_pressed = True
-					loadLevel(level_id)
+					level_num = str(level_id)
+					map_below = TileMap('levels/level'+level_num+'/level'+level_num+'_back.csv', spritesheet)
+					map_above = TileMap('levels/level'+level_num+'/level'+level_num+'_front.csv', spritesheet)
+					map_above2 = TileMap('levels/level'+level_num+'/level'+level_num+'_front2.csv', spritesheet)
+					map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
+					map_above3 = TileMap('levels/level'+level_num+'/level'+level_num+'_front3.csv', spritesheet)
 
 		# this is just any generic block collision
-		if (layer == 1 and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
+		if ((layer == 1 or layer == -1) and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
 			offsetY_top, offsetY_bottom = 0, 0
 			do_collision = True
 
@@ -296,11 +304,11 @@ def collide():
 			if i.rect.left + 12 <= player_rect.center[0] <= i.rect.right - 12 and i.rect.top + 12 <= player_rect.center[1] <= i.rect.bottom - 12:
 				winlvl("win")
 
-		if layer == 0 and i.type == "wall1":
+		if (layer == 0 or layer == -1) and i.type == "wall1":
 			offsetY_top, offsetY_bottom = 0, 16
 			do_collision = True
 
-		if i.type == "ladder" or i.type == "button" or i.type == "exit" or (layer != 1 and i.type == "blank") or (layer == 1 and i.type == "wall3"):
+		if i.type == "ladder" or i.type == "button" or i.type == "exit" or (layer != 1 and i.type == "blank") or ((layer == 1 or layer == -1)and i.type == "wall3"):
 			do_collision = False
 
 		if do_collision:
@@ -336,7 +344,7 @@ def collide():
 				playerx += 2
 
 def movep():
-	global volume, playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text
+	global volume, playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text, WIDTH, HEIGHT
 	addwalk, run = False, False
 	pressed_keys = pygame.key.get_pressed()
 
@@ -476,9 +484,11 @@ def winlvl(type):
 		t0 += (t2-t1)
 
 def update():
-	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle
+	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle, WIDTH, HEIGHT
 
 	clock.tick(60)
+
+	screen.fill((0,0,0))
 
 	bg.draw_map(screen)
 	
@@ -491,9 +501,9 @@ def update():
 	if layer == 1 or action == "climb" or layer == -1:
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
-		screen.blit(player_img, pygame.Rect(288+animX, 288-animY, 32, 32))
+		screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
 	elif layer == 0:
-		screen.blit(player_img, pygame.Rect(288+animX, 288-animY, 32, 32))
+		screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
 
@@ -501,7 +511,7 @@ def update():
 
 	if shadow == True:
 		screen.blit(cover, (0,0))
-		screen.blit(shadowcircle, pygame.Rect(0,0,640,640))
+		screen.blit(shadowcircle, pygame.Rect(WIDTH/2-320, HEIGHT/2-320,640,640))
 
 	if ui_timer == True:
 		timer()
@@ -515,7 +525,7 @@ def update():
 	if ui_topright == True:
 		topright_text2 = font1small.render(topright_text, True, (255, 255, 255))
 		topright_text2_rect = topright_text2.get_rect()
-		topright_text2_rect.topright = (624, 16)
+		topright_text2_rect.topright = (WIDTH-16, 16)
 		screen.blit(topright_text2, topright_text2_rect)
 	pygame.display.flip()
 
@@ -580,7 +590,7 @@ def timer():
 	else:
 		timer_text = font1.render('Time: 00:00"00', True, (255, 255, 255))
 	timer_text_rect = timer_text.get_rect()
-	timer_text_rect.bottomleft = (16, 624)
+	timer_text_rect.bottomleft = (16, HEIGHT-16)
 	screen.blit(timer_text, timer_text_rect)
 
 emotewheel = pygame.image.load("assets/hud/emotewheel.png")
@@ -603,7 +613,7 @@ def emotes():
 		emote = 2
 		emotemenu = False
 	if emotemenu == True:
-		screen.blit(emotewheel, (440, 440))
+		screen.blit(emotewheel, (WIDTH-200, HEIGHT-200))
 
 def level_name():
 	global levelname
@@ -667,8 +677,19 @@ def rendertext(text, fontsize, color, place, position):
 		text1_rect.center = place
 	screen.blit(text1, text1_rect)
 
+
+def resetScreen():
+	global WIDTH, HEIGHT, cover, screen
+	temp_screen_status = pygame.display.is_fullscreen()
+	screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.SCALED|pygame.HWSURFACE, vsync=1) 
+	cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
+	cover.fill((0,0,0,100))
+	if temp_screen_status == True:
+		pygame.display.toggle_fullscreen()
+
+
 def titlescreen():
-	global volume, offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title, version
+	global volume, offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title, version, HEIGHT, WIDTH, screen
 
 	maxcursor = 1
 
@@ -695,7 +716,7 @@ def titlescreen():
 			cursor -= 1
 		elif pressed_keys[pygame.K_DOWN]:
 			cursor += 1
-		elif titletype == "lvlselect":
+		elif titletype == "lvlselect" or titletype == "res":
 			if pressed_keys[pygame.K_LEFT]:
 				cursor -= 4
 			elif pressed_keys[pygame.K_RIGHT]:
@@ -716,11 +737,11 @@ def titlescreen():
 					title = False
 				if cursor == 1:
 					titletype = "lvlselect"
-					maxcursor = 2
 					cursor = 0
 				if cursor == 2:
 					prev_title = "title"
 					titletype = "options"
+					cursor = 0
 				if cursor == 3:
 					print("not yet")
 				if cursor == 4:
@@ -734,24 +755,55 @@ def titlescreen():
 				if cursor == 2:
 					prev_title = "pause"
 					titletype = "options"
+					cursor = 0
 				if cursor == 3:
 					print("not yet")
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "lvlselect":
-				# temporary if statement until i make al lthe levels
+				# temporary if statement until i make all lthe levels
 				if cursor == 0 or cursor == 1:
 					offsetX, offsetY = 0, 0
 					level_id = cursor+1
 					title = False
 				elif cursor == 7:
 					titletype = "title"
+					cursor = 0
 			elif titletype == "options":
 				if cursor == 1:
 					pygame.display.toggle_fullscreen()
 				if cursor == 2:
+					titletype = "res"
+					cursor = 0
+				if cursor == 3:
 					titletype = prev_title
 					cursor = 0
+			elif titletype == "res":
+				if cursor == 0:
+					WIDTH = 640
+					HEIGHT = 640
+					resetScreen()
+				elif cursor == 1:
+					WIDTH = 1280
+					HEIGHT = 720
+					resetScreen()
+				elif cursor == 2:
+					WIDTH = 1280
+					HEIGHT = 1024
+					resetScreen()
+				elif cursor == 3:
+					WIDTH = 768
+					HEIGHT = 576
+					resetScreen()
+				elif cursor == 4:
+					WIDTH = 1440
+					HEIGHT = 900
+					resetScreen()
+
+				elif cursor == 5:
+					titletype = "options"
+					cursor = 0
+
 	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
 		keypress = True
 	else:
@@ -762,7 +814,9 @@ def titlescreen():
 	elif titletype == "lvlselect":
 		maxcursor = 7
 	elif titletype == "options":
-		maxcursor = 2
+		maxcursor = 3
+	elif titletype == "res":
+		maxcursor = 5
 
 	if cursor < 0:
 		cursor = maxcursor
@@ -772,45 +826,45 @@ def titlescreen():
 	cursory = cursor
 
 	if shadow == True:
-		screen.blit(shadowcircle, pygame.Rect(0,0,640,640))
+		screen.blit(shadowcircle, pygame.Rect(WIDTH/2-320, HEIGHT/2-320,640,640))
 
 	screen.blit(cover, (0,0))
 
 	if titletype == "title":
 		text1 = font1big.render("MAZETEST 2", True, (255, 255, 255))
-		rendertext("Version "+version, "small", (255, 255, 255), (630, 600), "topright")
-		rendertext("By Philooxy", "small", (255, 255, 255), (630, 630), "bottomright")
+		rendertext("Version "+version, "small", (255, 255, 255), (WIDTH-10, HEIGHT-40), "topright")
+		rendertext("By Philooxy", "small", (255, 255, 255), (WIDTH-10, HEIGHT-10), "bottomright")
 
-		rendertext("Play", "normal", (255, 255, 255), (120, 320), "topleft")
-		rendertext("Level Select", "normal", (255, 255, 255), (120, 380), "topleft")
-		rendertext("Options", "normal", (255, 255, 255), (120, 440), "topleft")
-		rendertext("Help", "normal", (255, 255, 255), (120, 500), "topleft")
-		rendertext("Quit", "normal", (255, 0, 0), (120, 560), "topleft")
-		rendertext("*", "normal", (255, 255, 255), (90, 320+60*cursory), "topleft")
+		rendertext("Play", "normal", (255, 255, 255), (120, HEIGHT*(8/16)), "topleft")
+		rendertext("Level Select", "normal", (255, 255, 255), (120, HEIGHT*(9/16)), "topleft")
+		rendertext("Options", "normal", (255, 255, 255), (120, HEIGHT*(10/16)), "topleft")
+		rendertext("Help", "normal", (255, 255, 255), (120, HEIGHT*(11/16)), "topleft")
+		rendertext("Quit", "normal", (255, 0, 0), (120, HEIGHT*(12/16)), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, HEIGHT/2+(HEIGHT/16)*cursory), "topleft")
 
 	elif titletype == "pause":
 		text1 = font1big.render("Paused", True, (255, 255, 255))
-		rendertext("MAZETEST 2 v"+version, "small", (255, 255, 255), (630, 630), "bottomright")
+		rendertext("MAZETEST 2 v"+version, "small", (255, 255, 255), (WIDTH-10, HEIGHT-10), "bottomright")
 
-		rendertext("Resume", "normal", (255, 255, 255), (120, 320), "topleft")
-		rendertext("Restart", "normal", (255, 255, 255), (120, 380), "topleft")
-		rendertext("Options", "normal", (255, 255, 255), (120, 440), "topleft")
-		rendertext("Help", "normal", (255, 255, 255), (120, 500), "topleft")
-		rendertext("Quit", "normal", (255, 0, 0), (120, 560), "topleft")
-		rendertext("*", "normal", (255, 255, 255), (90, 320+60*cursory), "topleft")
+		rendertext("Resume", "normal", (255, 255, 255), (120, HEIGHT*(8/16)), "topleft")
+		rendertext("Restart", "normal", (255, 255, 255), (120, HEIGHT*(9/16)), "topleft")
+		rendertext("Options", "normal", (255, 255, 255), (120, HEIGHT*(10/16)), "topleft")
+		rendertext("Help", "normal", (255, 255, 255), (120, HEIGHT*(11/16)), "topleft")
+		rendertext("Quit", "normal", (255, 0, 0), (120, HEIGHT*(12/16)), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, HEIGHT/2+(HEIGHT/16)*cursory), "topleft")
 
 	elif titletype == "lvlselect":
 		text1 = font1big.render("Levels", True, (255, 255, 255))
 
-		rendertext("Level 1", "normal", (255, 255, 255), (120, 320), "topleft")
-		rendertext("Level 2", "normal", (255, 255, 255), (120, 380), "topleft")
-		rendertext("Level 3", "normal", (255, 255, 255), (120, 440), "topleft")
-		rendertext("Level 4", "normal", (255, 255, 255), (120, 500), "topleft")
-		rendertext("Level 5", "normal", (255, 255, 255), (320, 320), "topleft")
-		rendertext("Level 6", "normal", (255, 255, 255), (320, 380), "topleft")
-		rendertext("Level 7", "normal", (255, 255, 255), (320, 440), "topleft")
-		rendertext("Back", "normal", (255, 0, 0), (320, 500), "topleft")
-		rendertext("*", "normal", (255, 255, 255), (90+math.floor(cursor/4)*200, 320+60*(cursor % 4)), "topleft")
+		rendertext("Level 1", "normal", (255, 255, 255), (120, HEIGHT*(8/16)), "topleft")
+		rendertext("Level 2", "normal", (255, 255, 255), (120, HEIGHT*(9/16)), "topleft")
+		rendertext("Level 3", "normal", (255, 255, 255), (120, HEIGHT*(10/16)), "topleft")
+		rendertext("Level 4", "normal", (255, 255, 255), (120, HEIGHT*(11/16)), "topleft")
+		rendertext("Level 5", "normal", (255, 255, 255), (320, HEIGHT*(8/16)), "topleft")
+		rendertext("Level 6", "normal", (255, 255, 255), (320, HEIGHT*(9/16)), "topleft")
+		rendertext("Level 7", "normal", (255, 255, 255), (320, HEIGHT*(10/16)), "topleft")
+		rendertext("Back", "normal", (255, 0, 0), (320, HEIGHT*(11/16)), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90+math.floor(cursor/4)*200, HEIGHT/2+(HEIGHT/16)*(cursor % 4)), "topleft")
 
 	elif titletype == "options":
 		text1 = font1big.render("Options", True, (255, 255, 255))
@@ -820,14 +874,27 @@ def titlescreen():
 		else:
 			fullscreen_status = "Off"
 
-		rendertext("Volume: "+str(volume*100)+"%", "normal", (255, 255, 255), (120, 320), "topleft")
-		rendertext("Fullscreen: "+fullscreen_status, "normal", (255, 255, 255), (120, 380), "topleft")
-		rendertext("Back", "normal", (255, 0, 0), (120, 440), "topleft")
-		rendertext("*", "normal", (255, 255, 255), (90, 320+60*cursory), "topleft")
+		rendertext("Volume: "+str(int(volume*100))+"%", "normal", (255, 255, 255), (120, HEIGHT*(8/16)), "topleft")
+		rendertext("Fullscreen: "+fullscreen_status, "normal", (255, 255, 255), (120, HEIGHT*(9/16)), "topleft")
+		rendertext("Resolution...", "normal", (255, 255, 255), (120, HEIGHT*(10/16)), "topleft")
+		rendertext("Back", "normal", (255, 0, 0), (120, HEIGHT*(11/16)), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, HEIGHT/2+(HEIGHT/16)*cursory), "topleft")
+
+	elif titletype == "res":
+		text1 = font1big.render("Resolution", True, (255, 255, 255))
+
+		rendertext("640x640 (1:1)", "normal", (255, 255, 255), (120, HEIGHT*(8/16)), "topleft")
+		rendertext("1280x720 (16:9)", "normal", (255, 255, 255), (120, HEIGHT*(9/16)), "topleft")
+		rendertext("1280x1024 (5:4)", "normal", (255, 255, 255), (120, HEIGHT*(10/16)), "topleft")
+		rendertext("768x576 (4:3)", "normal", (255, 255, 255), (120, HEIGHT*(11/16)), "topleft")
+		rendertext("1440X900 (8:5)", "normal", (255, 255, 255), (120, HEIGHT*(12/16)), "topleft")
+		rendertext("Back", "normal", (255, 0, 0), (120, HEIGHT*(13/16)), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, HEIGHT/2+(HEIGHT/16)*cursory), "topleft")
+
 
 	text2 = pygame.transform.rotate(text1, 5*(math.sin(offsetX/50)))
 	text1_rect = text2.get_rect()
-	text1_rect.center = (320, 128)
+	text1_rect.center = (WIDTH/2, HEIGHT/5)
 	screen.blit(text2, text1_rect)
 
 	pygame.mixer.music.set_volume(0.1*volume)
@@ -877,6 +944,8 @@ while True:
 				sys.exit()
 
 		emote, action = 0, "walk"
+
+		print(layer)
 
 		collide()
 		movep()

@@ -50,7 +50,7 @@ button_pressed = False
 level_id = 1
 cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
 cover.fill((0,0,0,100))
-version = "0.8.5"
+version = "0.8.6"
 volume = 1
 
 def resetvars():
@@ -308,7 +308,7 @@ def collide():
 			offsetY_top, offsetY_bottom = 0, 16
 			do_collision = True
 
-		if i.type == "ladder" or i.type == "button" or i.type == "exit" or (layer != 1 and i.type == "blank") or ((layer == 1 or layer == -1)and i.type == "wall3"):
+		if i.type == "ladder" or i.type == "button" or i.type == "exit" or (layer != 1 and i.type == "blank") or ((layer == 1 or layer == -1) and i.type == "wall3") or (i.type == "wall1" and layer == 1):
 			do_collision = False
 
 		if do_collision:
@@ -511,7 +511,7 @@ def update():
 
 	if shadow == True:
 		screen.blit(cover, (0,0))
-		screen.blit(shadowcircle, pygame.Rect(WIDTH/2-320, HEIGHT/2-320,640,640))
+		screen.blit(shadowcircle, pygame.Rect(WIDTH/2-720, HEIGHT/2-512, 0, 0))
 
 	if ui_timer == True:
 		timer()
@@ -825,10 +825,10 @@ def titlescreen():
 
 	cursory = cursor
 
-	if shadow == True:
-		screen.blit(shadowcircle, pygame.Rect(WIDTH/2-320, HEIGHT/2-320,640,640))
-
 	screen.blit(cover, (0,0))
+	if shadow == True:
+		screen.blit(shadowcircle, pygame.Rect(WIDTH/2-720, HEIGHT/2-512, 0, 0))
+
 
 	if titletype == "title":
 		text1 = font1big.render("MAZETEST 2", True, (255, 255, 255))
@@ -944,8 +944,6 @@ while True:
 				sys.exit()
 
 		emote, action = 0, "walk"
-
-		print(layer)
 
 		collide()
 		movep()

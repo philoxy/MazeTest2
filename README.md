@@ -24,3 +24,4 @@ NOTE: macOS and macOS Intel versions don't work yet, as they require code signin
         * controls
     * level guide
 * random cool features i feel like adding
+* different control schemes (wasd, arrows)

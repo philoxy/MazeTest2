@@ -743,7 +743,9 @@ def titlescreen():
 					titletype = "options"
 					cursor = 0
 				if cursor == 3:
-					print("not yet")
+					prev_title = "title"
+					titletype = "help"
+					cursor = 0
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "pause":
@@ -757,7 +759,9 @@ def titlescreen():
 					titletype = "options"
 					cursor = 0
 				if cursor == 3:
-					print("not yet")
+					prev_title = "pause"
+					titletype = "help"
+					cursor = 0
 				if cursor == 4:
 					sys.exit()
 			elif titletype == "lvlselect":
@@ -766,7 +770,7 @@ def titlescreen():
 					offsetX, offsetY = 0, 0
 					level_id = cursor+1
 					title = False
-				elif cursor == 7:
+				if cursor == 7:
 					titletype = "title"
 					cursor = 0
 			elif titletype == "options":
@@ -778,29 +782,38 @@ def titlescreen():
 				if cursor == 3:
 					titletype = prev_title
 					cursor = 0
+			elif titletype == "help":
+				if cursor == 0:
+					print("about")
+				if cursor == 1:
+					print("controls")
+				if cursor == 2:
+					print("how to play")
+				if cursor == 3:
+					titletype = prev_title
+					cursor = 0
 			elif titletype == "res":
 				if cursor == 0:
 					WIDTH = 640
 					HEIGHT = 640
 					resetScreen()
-				elif cursor == 1:
+				if cursor == 1:
 					WIDTH = 1280
 					HEIGHT = 720
 					resetScreen()
-				elif cursor == 2:
+				if cursor == 2:
 					WIDTH = 1280
 					HEIGHT = 1024
 					resetScreen()
-				elif cursor == 3:
+				if cursor == 3:
 					WIDTH = 768
 					HEIGHT = 576
 					resetScreen()
-				elif cursor == 4:
+				if cursor == 4:
 					WIDTH = 1440
 					HEIGHT = 900
 					resetScreen()
-
-				elif cursor == 5:
+				if cursor == 5:
 					titletype = "options"
 					cursor = 0
 
@@ -813,7 +826,7 @@ def titlescreen():
 		maxcursor = 4
 	elif titletype == "lvlselect":
 		maxcursor = 7
-	elif titletype == "options":
+	elif titletype == "options" or titletype == "help":
 		maxcursor = 3
 	elif titletype == "res":
 		maxcursor = 5
@@ -889,6 +902,15 @@ def titlescreen():
 		rendertext("768x576 (4:3)", "normal", (255, 255, 255), (120, HEIGHT*(11/16)), "topleft")
 		rendertext("1440X900 (8:5)", "normal", (255, 255, 255), (120, HEIGHT*(12/16)), "topleft")
 		rendertext("Back", "normal", (255, 0, 0), (120, HEIGHT*(13/16)), "topleft")
+		rendertext("*", "normal", (255, 255, 255), (90, HEIGHT/2+(HEIGHT/16)*cursory), "topleft")
+
+	elif titletype == "help":
+		text1 = font1big.render("Help", True, (255, 255, 255))
+
+		rendertext("About", "normal", (255, 255, 255), (120, HEIGHT*(8/16)), "topleft")
+		rendertext("Controls", "normal", (255, 255, 255), (120, HEIGHT*(9/16)), "topleft")
+		rendertext("How to play", "normal", (255, 255, 255), (120, HEIGHT*(10/16)), "topleft")
+		rendertext("Back", "normal", (255, 0, 0), (120, HEIGHT*(11/16)), "topleft")
 		rendertext("*", "normal", (255, 255, 255), (90, HEIGHT/2+(HEIGHT/16)*cursory), "topleft")
 
 

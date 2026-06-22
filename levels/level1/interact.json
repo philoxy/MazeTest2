@@ -1,7 +1,9 @@
-{"5-5": {
+{"2-10": {
     "type":"dialogue",
-    "0":"test1",
-    "1":"test2",
-    "2":"test3"
+    "direction":3,
+    "0":"* its a wall",
+    "1":"how did you even find this",
+    "2":"stupidly long text that you need to wrap around or else itll cut off",
+    "3":"sample dialogue 4"
 }
 }

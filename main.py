@@ -52,9 +52,10 @@ cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
 cover.fill((0,0,0,100))
 version = "0.8.7"
 volume = 1
+dialoguetext, dialoguecounter = "", 0
 
 def resetvars():
-	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed, cover
+	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed, cover, dialoguetext, dialoguecounter
 
 	Tilegroup.empty()
 	Tilegroup_nocol.empty()
@@ -81,6 +82,7 @@ def resetvars():
 	button_pressed = False
 	cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
 	cover.fill((0,0,0,100))
+	dialoguetext, dialoguecounter = "", 0
 
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
@@ -250,7 +252,7 @@ class TileMap():
 						Tilegroup.add(Temptile)
 
 				elif tile == "12":
-					Temptile = Tile("bridge", x * self.tile_size, y * self.tile_size, self.spritesheet, "interact")
+					Temptile = Tile("blank", x * self.tile_size, y * self.tile_size, self.spritesheet, "interact")
 					tiles.append(Temptile)
 					if self.filename == bg_filename or self.filename == front3_filename:
 						Tilegroup_nocol.add(Temptile)
@@ -266,7 +268,7 @@ class TileMap():
 # general functions for player
 
 def collide():
-	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move, keypress2, interactions, dialoguecounter
+	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move, keypress2, interactions, dialoguecounter, dialoguetext, title
 	pressed_keys = pygame.key.get_pressed()
 	collide_down = False
 	collide_up = False
@@ -309,20 +311,24 @@ def collide():
 					if keypress2 == False and pressed_keys[pygame.K_z]:
 						tempname = str(int(i.coords[0]/64))+"-"+str(int(i.coords[1]/64))
 						temptype = interactions[tempname]["type"]
-						if temptype == "dialogue":
-							print(dialoguecounter)
-							if dialoguecounter > len(interactions[tempname])-1:
+						tempdir = interactions[tempname]["direction"]
+						if temptype == "dialogue" and direction == tempdir:
+							dialoguetext = ""
+							if dialoguecounter > len(interactions[tempname])-2:
 								dialoguecounter = 0
-							if dialoguecounter != len(interactions[tempname])-1:
-								print(interactions[tempname][str(dialoguecounter)])
+							if dialoguecounter != len(interactions[tempname])-2:
+								dialoguetext = interactions[tempname][str(dialoguecounter)]
 							dialoguecounter += 1
-
 						elif temptype == "cutscene":
 							print("not yet")
 					if pressed_keys[pygame.K_z]:
 						keypress2 = True
 					else:
 						keypress2 = False
+
+					if dialoguetext != "":
+						collide_down, collide_left, collide_right, collide_up = True, True, True, True
+
 
 		# this is just any generic block collision
 		if ((layer == 1 or layer == -1) and i.type == "blank") or i.type == "water" or (i.type == "door" and button_pressed == False):
@@ -374,42 +380,46 @@ def collide():
 				playerx += 2
 
 def movep():
-	global volume, playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text, WIDTH, HEIGHT
+	global volume, playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text, WIDTH, HEIGHT, dialoguetext
 	addwalk, run = False, False
 	pressed_keys = pygame.key.get_pressed()
 
-	if pressed_keys[pygame.K_x] and action == "walk":
-		playerx = 4*round(playerx/4)
-		playery = 4*round(playery/4)
-		move = 4
-		run = True
-	else:
-		move = 2
+	if dialoguetext != "":
+		walksprite = 0
 
-	if pressed_keys[pygame.K_LEFT]:
-		direction = 0
-		if collide_left == False:
-			playerx -= move
-			addwalk = True
-	elif pressed_keys[pygame.K_RIGHT]:
-		direction = 2
-		if collide_right == False:
-			playerx += move
-			addwalk = True
-	if pressed_keys[pygame.K_UP]:
-		direction = 1
-		if collide_up == False:
-			playery -= move
-			addwalk = True
-	elif pressed_keys[pygame.K_DOWN]:
-		direction = 3
-		if collide_down == False:
-			playery += move
-			addwalk = True
+	if dialoguetext == "":
+		if pressed_keys[pygame.K_x] and action == "walk":
+			playerx = 4*round(playerx/4)
+			playery = 4*round(playery/4)
+			move = 4
+			run = True
+		else:
+			move = 2
+
+		if pressed_keys[pygame.K_LEFT]:
+			direction = 0
+			if collide_left == False:
+				playerx -= move
+				addwalk = True
+		elif pressed_keys[pygame.K_RIGHT]:
+			direction = 2
+			if collide_right == False:
+				playerx += move
+				addwalk = True
+		if pressed_keys[pygame.K_UP]:
+			direction = 1
+			if collide_up == False:
+				playery -= move
+				addwalk = True
+		elif pressed_keys[pygame.K_DOWN]:
+			direction = 3
+			if collide_down == False:
+				playery += move
+				addwalk = True
 
 	if pressed_keys[pygame.K_r] and restartable == True:
 		winlvl("restart")
-	elif pressed_keys[pygame.K_ESCAPE] and restartable == True:
+	elif pressed_keys[pygame.K_ESCAPE] and restartable == True and not pressed_keys[pygame.K_z]:
 		winlvl("exit")
 
 	if addwalk == True:
@@ -520,7 +530,7 @@ def winlvl(type):
 		t0 += (t2-t1)
 
 def update():
-	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle, WIDTH, HEIGHT
+	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle, WIDTH, HEIGHT, dialoguetext
 
 	clock.tick(60)
 
@@ -565,10 +575,16 @@ def update():
 		topright_text2_rect = topright_text2.get_rect()
 		topright_text2_rect.topright = (WIDTH-16, 16)
 		screen.blit(topright_text2, topright_text2_rect)
+
+	if dialoguetext != "":
+		dialoguebox = pygame.Surface((580,196))
+		dialoguebox.fill((0,0,0))
+		screen.blit(dialoguebox, (WIDTH/2-290,HEIGHT-256, 620, 196))
+		rendertext(dialoguetext, "normal", (255, 255, 255), (WIDTH/2-270, HEIGHT-246), "topleft")
 	pygame.display.flip()
 
 def animate():
-	global direction, walksprite, player_img1, action, emote, animX, animY, playerx, playery, offsetX, offsetY, layer
+	global direction, walksprite, player_img1, action, emote, animX, animY, playerx, playery, offsetX, offsetY, layer, dialoguetext
 	if action == "walk":
 		if direction == 0 or direction == 2:
 			if walksprite == 0:
@@ -595,7 +611,7 @@ def animate():
 			player_img_load("climb/climb"+str(walksprite)+".png")
 
 	if emote == 1:
-		player_img_load("anim/why")
+		player_img_load("anim/why.png")
 		for i in range(30):
 			update()
 	elif emote == 2:
@@ -659,7 +675,7 @@ emotewheel = pygame.image.load("assets/hud/emotewheel.png")
 emotewheel.set_colorkey((255, 0, 208))
 
 def emotes():
-	global emotemenu, emotewheel, emote, keypress
+	global emotemenu, emotewheel, emote, keypress, dialoguetext
 	pressed_keys = pygame.key.get_pressed()
 
 	if pressed_keys[pygame.K_e] and keypress == False:
@@ -667,6 +683,9 @@ def emotes():
 			emotemenu = False
 		elif emotemenu == False:
 			emotemenu = True
+
+	if dialoguetext != "":
+		emotemenu = False
 
 	if emotemenu == True:
 		screen.blit(emotewheel, (WIDTH-200, HEIGHT-200))

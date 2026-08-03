@@ -50,9 +50,11 @@ button_pressed = False
 level_id = 1
 cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
 cover.fill((0,0,0,100))
-version = "0.8.7"
+version = "0.8.8"
 volume = 1
-dialoguetext, dialoguecounter = "", 0
+dialoguetext, dialoguecounter = ["","","","",""], 0
+pressed_keys = pygame.key.get_pressed()
+keypress2 = False
 
 def resetvars():
 	global playerx, playery, player_rect, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, animX, animY, walk, addwalk, walksprite, direction, move, layer, emote, emotemenu, action, ui_timer, ui_song, ui_topright, ui_levelname, ui_timer2, shadow, button_pressed, cover, dialoguetext, dialoguecounter
@@ -82,7 +84,7 @@ def resetvars():
 	button_pressed = False
 	cover = pygame.Surface((WIDTH,HEIGHT), pygame.SRCALPHA)
 	cover.fill((0,0,0,100))
-	dialoguetext, dialoguecounter = "", 0
+	dialoguetext, dialoguecounter = ["","","","",""], 0
 
 
 # Spritesheet, Tile, and Tilemap classes from this tutorial: https://www.pygame.org/project/5291/7669
@@ -268,14 +270,15 @@ class TileMap():
 # general functions for player
 
 def collide():
-	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move, keypress2, interactions, dialoguecounter, dialoguetext, title
-	pressed_keys = pygame.key.get_pressed()
+	global collide_down, collide_up, collide_right, collide_left, playerx, playery, walk, layer, player_rect, action, win, playery, direction, map_below, map_below2, map_above, map_above2, map_above3, level_id, button_pressed, offsetX, offsetY, run, move, keypress2, interactions, dialoguecounter, dialoguetext, title, pressed_keys
 	collide_down = False
 	collide_up = False
 	collide_right = False
 	collide_left = False
 
 	do_collision = False
+
+	pressed_keys = pygame.key.get_pressed()
 
 	for i in list(Tilegroup.sprites()):
 
@@ -307,27 +310,6 @@ def collide():
 					map_below2 = TileMap('levels/level'+level_num+'/level'+level_num+'_back2.csv', spritesheet)
 					map_above3 = TileMap('levels/level'+level_num+'/level'+level_num+'_front3.csv', spritesheet)
 
-				if i.type == "interact":
-					if keypress2 == False and pressed_keys[pygame.K_z]:
-						tempname = str(int(i.coords[0]/64))+"-"+str(int(i.coords[1]/64))
-						temptype = interactions[tempname]["type"]
-						tempdir = interactions[tempname]["direction"]
-						if temptype == "dialogue" and direction == tempdir:
-							dialoguetext = ""
-							if dialoguecounter > len(interactions[tempname])-2:
-								dialoguecounter = 0
-							if dialoguecounter != len(interactions[tempname])-2:
-								dialoguetext = interactions[tempname][str(dialoguecounter)]
-							dialoguecounter += 1
-						elif temptype == "cutscene":
-							print("not yet")
-					if pressed_keys[pygame.K_z]:
-						keypress2 = True
-					else:
-						keypress2 = False
-
-					if dialoguetext != "":
-						collide_down, collide_left, collide_right, collide_up = True, True, True, True
 
 
 		# this is just any generic block collision
@@ -380,14 +362,14 @@ def collide():
 				playerx += 2
 
 def movep():
-	global volume, playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text, WIDTH, HEIGHT, dialoguetext
+	global volume, playerx, playery, collide_down, collide_up, collide_right, collide_left, offsetX, offsetY, walk, walksprite, direction, addwalk, emote, action, emotemenu, restartable, topright_text, WIDTH, HEIGHT, dialoguetext, pressed_keys
 	addwalk, run = False, False
 	pressed_keys = pygame.key.get_pressed()
 
-	if dialoguetext != "":
+	if dialoguetext != ["","","","",""]:
 		walksprite = 0
 
-	if dialoguetext == "":
+	if dialoguetext == ["","","","",""]:
 		if pressed_keys[pygame.K_x] and action == "walk":
 			playerx = 4*round(playerx/4)
 			playery = 4*round(playery/4)
@@ -529,8 +511,76 @@ def winlvl(type):
 		t2 = pygame.time.get_ticks()-t0
 		t0 += (t2-t1)
 
+def dialogue():
+	global interactions, offsetX, offsetY, dialoguetext, dialoguecounter, keypress2, collide_left, collide_down, collide_right, collide_up, playerx, playery, player_rect, layer, pressed_keys
+	
+	for i in interactions:
+		tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
+		tempobjrect = tempobj.get_rect()
+		tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"], (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
+		"""
+		tempobj.set_colorkey((255, 0, 208))
+		screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
+		"""
+		player_rect_temp = pygame.Rect((WIDTH/2-32), (HEIGHT/2+16), 48, 48)
+
+		tempobjrect2 = pygame.Rect(interactions[i]["posx"] + interactions[i]["colx1"], interactions[i]["posy"] + interactions[i]["coly1"], interactions[i]["colx2"], interactions[i]["coly2"])
+		offsetY_top, offsetY_bottom = 0, 0
+
+		if layer == interactions[i]["layer"]:
+
+			if tempobjrect2.left - 31 <= player_rect.left <= tempobjrect2.right - 1:#+ interactions[i]["colx2"] - 1:
+				if pressed_keys[pygame.K_DOWN] and tempobjrect2.top <= player_rect.bottom - offsetY_top <= tempobjrect2.top + 4:
+					collide_down = True
+				if pressed_keys[pygame.K_UP] and tempobjrect2.bottom >= player_rect.top + offsetY_bottom >= tempobjrect2.bottom - 4:
+					collide_up = True
+			if tempobjrect2.top - 31 + offsetY_top <= player_rect.top <= tempobjrect2.bottom - 1 - offsetY_bottom:
+				if pressed_keys[pygame.K_RIGHT] and tempobjrect2.left <= player_rect.right <= tempobjrect2.left + 4:
+					collide_right = True
+				if pressed_keys[pygame.K_LEFT] and tempobjrect2.right >= player_rect.left >= tempobjrect2.right - 4:
+					collide_left = True
+
+			if (player_rect.right, player_rect.top) == (tempobjrect2.left+4, tempobjrect2.bottom-offsetY_bottom-4):
+				playerx -= 4
+			elif (player_rect.right, player_rect.top) == (tempobjrect2.left+2, tempobjrect2.bottom-offsetY_bottom-2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.top) == (tempobjrect2.right-4, tempobjrect2.bottom-offsetY_bottom-4):
+				playerx += 4
+			if (player_rect.left, player_rect.top) == (tempobjrect2.right-2, tempobjrect2.bottom-offsetY_bottom-2):
+				playerx += 2
+
+			if (player_rect.right, player_rect.bottom) == (tempobjrect2.left+4, tempobjrect2.top+offsetY_top+4):
+				playerx -= 4
+			elif (player_rect.right, player_rect.bottom) == (tempobjrect2.left+2, tempobjrect2.top+offsetY_top+2):
+				playerx -= 2
+
+			if (player_rect.left, player_rect.bottom) == (tempobjrect2.right-4, tempobjrect2.top+offsetY_top+4):
+				playerx += 4
+			if (player_rect.left, player_rect.bottom) == (tempobjrect2.right-2, tempobjrect2.top+offsetY_top+2):
+				playerx += 2
+
+		if player_rect_temp.colliderect(tempobjrect):
+
+			if keypress2 == False and pressed_keys[pygame.K_z] and layer == interactions[i]["layer"]:
+				dialoguetext = ["","","","",""]
+				if dialoguecounter > len(interactions[i])-7:
+					dialoguecounter = 0
+				if dialoguecounter != len(interactions[i])-7:
+					dialoguetext = interactions[i][str(dialoguecounter)]
+				dialoguecounter += 1
+
+			if pressed_keys[pygame.K_z]:
+				keypress2 = True
+			else:
+				keypress2 = False
+
+			if dialoguetext != ["","","","",""]:
+				collide_down, collide_left, collide_right, collide_up = True, True, True, True
+
+
 def update():
-	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle, WIDTH, HEIGHT, dialoguetext
+	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle, WIDTH, HEIGHT, dialoguetext, interactions
 
 	clock.tick(60)
 
@@ -544,16 +594,45 @@ def update():
 	map_below.draw_map(screen)
 	map_below2.draw_map(screen)
 
+	for i in interactions:
+		if interactions[i]["layer"] == 0:
+			tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
+			tempobjrect = tempobj.get_rect()
+			tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
+			tempobj.set_colorkey((255, 0, 208))
+			screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
+
 	if layer == 1 or action == "climb" or layer == -1:
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
+
+		for i in interactions:
+			if interactions[i]["layer"] == 1:
+				tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
+				tempobjrect = tempobj.get_rect()
+				tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
+				tempobj.set_colorkey((255, 0, 208))
+				screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
+
 		screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
+
 	elif layer == 0:
+
 		screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
 
+		for i in interactions:
+			if interactions[i]["layer"] == 1:
+				tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
+				tempobjrect = tempobj.get_rect()
+				tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
+				tempobj.set_colorkey((255, 0, 208))
+				screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
+
 	map_above3.draw_map(screen)
+
+	dialogue()
 
 	if shadow == True:
 		screen.blit(cover, (0,0))
@@ -576,11 +655,21 @@ def update():
 		topright_text2_rect.topright = (WIDTH-16, 16)
 		screen.blit(topright_text2, topright_text2_rect)
 
-	if dialoguetext != "":
-		dialoguebox = pygame.Surface((580,196))
-		dialoguebox.fill((0,0,0))
-		screen.blit(dialoguebox, (WIDTH/2-290,HEIGHT-256, 620, 196))
-		rendertext(dialoguetext, "normal", (255, 255, 255), (WIDTH/2-270, HEIGHT-246), "topleft")
+	if dialoguetext != ["","","","",""]:
+		dialoguebox = pygame.Surface((600,226))
+		dialoguebox.fill((255,255,255))
+		screen.blit(dialoguebox, (WIDTH/2-300,HEIGHT-266, 620, 226))
+
+		dialoguebox2 = pygame.Surface((580,206))
+		dialoguebox2.fill((0,0,0))
+		screen.blit(dialoguebox2, (WIDTH/2-290,HEIGHT-256, 620, 206))
+		rendertext(dialoguetext[0], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT-246), "topleft")
+		rendertext(dialoguetext[1], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT-206), "topleft")
+		rendertext(dialoguetext[2], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT-166), "topleft")
+		rendertext(dialoguetext[3], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT-126), "topleft")
+		rendertext(dialoguetext[4], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT- 86), "topleft")
+
+
 	pygame.display.flip()
 
 def animate():
@@ -684,7 +773,7 @@ def emotes():
 		elif emotemenu == False:
 			emotemenu = True
 
-	if dialoguetext != "":
+	if dialoguetext != ["","","","",""]:
 		emotemenu = False
 
 	if emotemenu == True:
@@ -775,7 +864,7 @@ def resetScreen():
 
 
 def titlescreen():
-	global volume, offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title, version, HEIGHT, WIDTH, screen
+	global volume, offsetX, offsetY, title, xdir, ydir, title_text2, title_text2_rect, cursor, keypress, level_mus, cover, shadow, titletype, maxcursor, offsetX, offsetY, level_id, prev_title, version, HEIGHT, WIDTH, screen, keypress2, pressed_keys
 
 	maxcursor = 1
 
@@ -783,6 +872,7 @@ def titlescreen():
 	bg.draw_map(screen)
 	map_below.draw_map(screen)
 	map_below2.draw_map(screen)
+	dialogue()
 	map_above.draw_map(screen)
 	map_above2.draw_map(screen)
 	if offsetX >= map_below.map_surface.get_size()[0]-192:
@@ -817,7 +907,7 @@ def titlescreen():
 			if volume < 0:
 				volume = 1
 			volume = int(round(volume*10))/10
-		if pressed_keys[pygame.K_z]:
+		if pressed_keys[pygame.K_z] or pressed_keys[pygame.K_RETURN]:
 			if titletype == "title":
 				if cursor == 0:
 					title = False
@@ -837,6 +927,7 @@ def titlescreen():
 			elif titletype == "pause":
 				if cursor == 0:
 					title = False
+					keypress2 = False
 				if cursor == 1:
 					title = False
 					winlvl("restart")
@@ -903,10 +994,15 @@ def titlescreen():
 					titletype = "options"
 					cursor = 0
 
-	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
+	if pressed_keys[pygame.K_UP] or pressed_keys[pygame.K_DOWN] or pressed_keys[pygame.K_z] or pressed_keys[pygame.K_RETURN] or pressed_keys[pygame.K_LEFT] or pressed_keys[pygame.K_RIGHT]:
 		keypress = True
 	else:
 		keypress = False
+
+	if pressed_keys[pygame.K_z]:
+		keypress2 = True
+	else:
+		keypress2 = False
 	
 	if titletype == "title" or titletype == "pause":
 		maxcursor = 4
@@ -1055,6 +1151,7 @@ while True:
 		emote, action = 0, "walk"
 
 		collide()
+		dialogue()
 		movep()
 
 		update()

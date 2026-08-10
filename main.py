@@ -16,9 +16,9 @@ pygame.display.set_icon(icon)
 pygame.mixer.init()
 clock = pygame.time.Clock()
 
-font1 = pygame.font.Font('assets/determination.ttf', 24)
-font1small = pygame.font.Font('assets/determination.ttf', 12)
-font1big = pygame.font.Font('assets/determination.ttf', 80)
+font1 = pygame.font.Font('assets/font.ttf', 24)
+font1small = pygame.font.Font('assets/font.ttf', 12)
+font1big = pygame.font.Font('assets/font.ttf', 80)
 
 Tilegroup = pygame.sprite.Group()
 Tilegroup_nocol = pygame.sprite.Group()

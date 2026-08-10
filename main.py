@@ -511,25 +511,25 @@ def winlvl(type):
 		t2 = pygame.time.get_ticks()-t0
 		t0 += (t2-t1)
 
+# these function names make no sense
 def dialogue():
 	global interactions, offsetX, offsetY, dialoguetext, dialoguecounter, keypress2, collide_left, collide_down, collide_right, collide_up, playerx, playery, player_rect, layer, pressed_keys
 	
 	for i in interactions:
-		tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
+		tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i)+".png")
 		tempobjrect = tempobj.get_rect()
-		tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"], (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
-		"""
-		tempobj.set_colorkey((255, 0, 208))
-		screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
-		"""
-		player_rect_temp = pygame.Rect((WIDTH/2-32), (HEIGHT/2+16), 48, 48)
+		tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"], (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3])
+
+		tempobjrect3 = pygame.Rect(tempobjrect[0]+interactions[i]["rectx1"]+16, tempobjrect[1]+interactions[i]["recty1"], interactions[i]["rectx2"], interactions[i]["recty2"])
+
+		player_rect_temp = pygame.Rect((WIDTH/2-16), (HEIGHT/2+16), 32, 16)
 
 		tempobjrect2 = pygame.Rect(interactions[i]["posx"] + interactions[i]["colx1"], interactions[i]["posy"] + interactions[i]["coly1"], interactions[i]["colx2"], interactions[i]["coly2"])
-		offsetY_top, offsetY_bottom = 0, 0
+		offsetY_top, offsetY_bottom = 0, 32
 
-		if layer == interactions[i]["layer"]:
+		if layer == interactions[i]["layer"] and not(interactions[i]["colx2"] == interactions[i]["coly2"] == 0):
 
-			if tempobjrect2.left - 31 <= player_rect.left <= tempobjrect2.right - 1:#+ interactions[i]["colx2"] - 1:
+			if tempobjrect2.left - 31 <= player_rect.left <= tempobjrect2.right - 1:
 				if pressed_keys[pygame.K_DOWN] and tempobjrect2.top <= player_rect.bottom - offsetY_top <= tempobjrect2.top + 4:
 					collide_down = True
 				if pressed_keys[pygame.K_UP] and tempobjrect2.bottom >= player_rect.top + offsetY_bottom >= tempobjrect2.bottom - 4:
@@ -560,13 +560,13 @@ def dialogue():
 			if (player_rect.left, player_rect.bottom) == (tempobjrect2.right-2, tempobjrect2.top+offsetY_top+2):
 				playerx += 2
 
-		if player_rect_temp.colliderect(tempobjrect):
+		if player_rect_temp.colliderect(tempobjrect3):
 
 			if keypress2 == False and pressed_keys[pygame.K_z] and layer == interactions[i]["layer"]:
 				dialoguetext = ["","","","",""]
-				if dialoguecounter > len(interactions[i])-7:
+				if dialoguecounter > len(interactions[i])-11:
 					dialoguecounter = 0
-				if dialoguecounter != len(interactions[i])-7:
+				if dialoguecounter != len(interactions[i])-11:
 					dialoguetext = interactions[i][str(dialoguecounter)]
 				dialoguecounter += 1
 
@@ -578,6 +578,32 @@ def dialogue():
 			if dialoguetext != ["","","","",""]:
 				collide_down, collide_left, collide_right, collide_up = True, True, True, True
 
+def npcdisplay(npclayer, dispplayer):
+	global interactions, playery, player_img1
+
+	player_img = player_img1
+	player_img.set_colorkey((255, 0, 208))
+
+	if len(interactions) != 0:
+		for i in interactions:
+			if interactions[i]["layer"] == npclayer:
+				tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i)+".png")
+				tempobjrect = tempobj.get_rect()
+				tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3])
+				tempobj.set_colorkey((255, 0, 208))
+
+				if dispplayer == True:
+					if playery < interactions[i]["posy"] + interactions[i]["recty1"] + (interactions[i]["recty2"]/2) - 20:
+						screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
+						screen.blit(tempobj, tempobjrect)
+					else:
+						screen.blit(tempobj, tempobjrect)
+						screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
+				else:
+					screen.blit(tempobj, tempobjrect)
+	else:
+		if dispplayer == True:
+			screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
 
 def update():
 	global playerx, playery, offsetX, offsetY, player_img1, player_rect, action, clock, animY, ui_timer, ui_levelname, ui_song, topright_text, shadow, shadowcircle, WIDTH, HEIGHT, dialoguetext, interactions
@@ -587,48 +613,30 @@ def update():
 	screen.fill((0,0,0))
 
 	bg.draw_map(screen)
-	
+
 	player_img = player_img1
 	player_img.set_colorkey((255, 0, 208))
 	player_rect.topleft = (playerx-32, playery)
 	map_below.draw_map(screen)
 	map_below2.draw_map(screen)
 
-	for i in interactions:
-		if interactions[i]["layer"] == 0:
-			tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
-			tempobjrect = tempobj.get_rect()
-			tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
-			tempobj.set_colorkey((255, 0, 208))
-			screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
+	npcdisplay(0, False)
 
 	if layer == 1 or action == "climb" or layer == -1:
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
 
-		for i in interactions:
-			if interactions[i]["layer"] == 1:
-				tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
-				tempobjrect = tempobj.get_rect()
-				tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
-				tempobj.set_colorkey((255, 0, 208))
-				screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
-
-		screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
+		npcdisplay(1, True)
 
 	elif layer == 0:
 
-		screen.blit(player_img, pygame.Rect((WIDTH/2-32)+animX, (HEIGHT/2-32)-animY, 32, 32))
+		npcdisplay(0, True)
+
 		map_above.draw_map(screen)
 		map_above2.draw_map(screen)
 
-		for i in interactions:
-			if interactions[i]["layer"] == 1:
-				tempobj = pygame.image.load("levels/level"+str(level_id)+"/interact/"+str(i))
-				tempobjrect = tempobj.get_rect()
-				tempobjrect = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"], tempobjrect[2], tempobjrect[3]) #interactions[i]["posx"]-offsetX, interactions[i]["posy"]-offsetY-16, tempobjrect[2], tempobjrect[3]-32)
-				tempobj.set_colorkey((255, 0, 208))
-				screen.blit(tempobj, pygame.Rect(tempobjrect[0], tempobjrect[1], tempobjrect[2], tempobjrect[3]))
+		npcdisplay(1, False)
+
 
 	map_above3.draw_map(screen)
 
@@ -668,7 +676,6 @@ def update():
 		rendertext(dialoguetext[2], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT-166), "topleft")
 		rendertext(dialoguetext[3], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT-126), "topleft")
 		rendertext(dialoguetext[4], "normal", (255, 255, 255), (WIDTH/2-280, HEIGHT- 86), "topleft")
-
 
 	pygame.display.flip()
 
@@ -868,11 +875,11 @@ def titlescreen():
 
 	maxcursor = 1
 
+	#loadLevel(0)
 	screen.fill((255,255,255))
 	bg.draw_map(screen)
 	map_below.draw_map(screen)
 	map_below2.draw_map(screen)
-	dialogue()
 	map_above.draw_map(screen)
 	map_above2.draw_map(screen)
 	if offsetX >= map_below.map_surface.get_size()[0]-192:

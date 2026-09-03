@@ -1,35 +1,47 @@
 {
-"dygatcenpc.png": {
-    "posx":458,
-    "posy":888,
-    "colx1":0,
+"dygatcenpc": {
+    "posx":640,
+    "posy":1088,
+    "colx1":16,
     "coly1":16,
     "colx2":32,
-    "coly2":22,
+    "coly2":32,
+    "rectx1":14,
+    "recty1":14,
+    "rectx2":36,
+    "recty2":36,
     "layer":0,
     "0":["* hello i am the blue dygatce npc","","","",""],
-    "1":["* Did you get all those chaos emeralds?","* Did you get all those chaos emeralds?","* Did you get all those chaos emeralds?","* Did you get all those chaos emeralds?","* Did you get all those chaos emeralds?"]
+    "1":["* Did you get all those chaos emeralds?","","","",""]
 },
-"dygatcenpc-red.png": {
-    "posx":778,
-    "posy":186,
-    "colx1":0,
+"dygatcenpc-red": {
+    "posx":832,
+    "posy":320,
+    "colx1":16,
     "coly1":16,
     "colx2":32,
-    "coly2":22,
+    "coly2":32,
+    "rectx1":14,
+    "recty1":14,
+    "rectx2":36,
+    "recty2":36,
     "layer":0,
     "0":["* hello i am the red dygatce npc","","","",""],
     "1":["* press buttons to open doors by walking on","    them","","",""]
 },
-"dygatcenpc-gray.png": {
-    "posx":842,
-    "posy":760,
-    "colx1":0,
+"dygatcenpc-gray": {
+    "posx":832,
+    "posy":1024,
+    "colx1":16,
     "coly1":16,
     "colx2":32,
-    "coly2":22,
-    "layer":0,
+    "coly2":32,
+    "rectx1":14,
+    "recty1":14,
+    "rectx2":36,
+    "recty2":36,
+    "layer":1,
     "0":["* hello i am the gray dygatce npc","","","",""],
-    "1":["* doors are those gray boxes near the flags","* they arent textured because the dev is","    lazy","",""]
+    "1":["* doors are those gray boxes","* they arent textured because the dev is","    lazy","",""]
 }
 }

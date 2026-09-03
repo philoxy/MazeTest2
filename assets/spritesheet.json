@@ -3,114 +3,71 @@
     "wall1":
     {
         "frame": {"x":64,"y":0,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
+    },
+    "wall2":
+    {
+        "frame": {"x":128,"y":128,"w":64,"h":64},
+        "rotation":0
     },
     "water":
     {
         "frame": {"x":0,"y":0,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "wall3":
     {
         "frame": {"x":0,"y":64,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "exit":
     {
         "frame": {"x":192,"y":0,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "path":
     {
         "frame": {"x":64,"y":64,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "bridge":
     {
         "frame": {"x":128,"y":0,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "bridge2":
     {
         "frame": {"x":128,"y":64,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "ladder":
     {
         "frame": {"x":192,"y":64,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
-    "blank":
+    "blank2":
     {
-        "frame": {"x":64,"y":192,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "frame": {"x":0,"y":192,"w":64,"h":64},
+        "rotation":0
     },
     "button1":
     {
         "frame": {"x":0,"y":128,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "button2":
     {
         "frame": {"x":64,"y":128,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "door1":
     {
         "frame": {"x":192,"y":128,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
+        "rotation":0
     },
     "door2":
     {
         "frame": {"x":192,"y":192,"w":64,"h":64},
-        "rotated": false,
-        "trimmed": false,
-        "spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
-        "sourceSize": {"w":64,"h":64}
-    }},
-    "meta": {
-        "app": "https://www.codeandweb.com/texturepacker",
-        "version": "1.0",
-        "image": "test.png",
-        "format": "RGBA8888",
-        "size": {"w":256,"h":256},
-        "scale": "1",
-        "smartupdate": "$TexturePacker:SmartUpdate:a66d649312f98accd6de9452ce22c2dc:dc1a8a27030eb8549f6ad949e95565fe:02ab164358d6d8b512e80119463a8649$"
-    }
+        "rotation":0
+    }}
     }

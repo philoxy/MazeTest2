@@ -499,7 +499,7 @@ def dialogue():
 		tempobjrect2 = pygame.Rect((WIDTH/2)-offsetX+interactions[i]["posx"] + interactions[i]["rectx1"]+16, (HEIGHT/2)-offsetY+interactions[i]["posy"] + interactions[i]["recty1"], interactions[i]["rectx2"], interactions[i]["recty2"])
 		offsetY_top, offsetY_bottom = 0, 0
 
-		if layer == interactions[i]["layer"]:
+		if layer == interactions[i]["layer"] and not(interactions[i]["colx2"] == interactions[i]["coly2"] == 0):
 
 			rectCollide(tempobjrect, player_rect2, 0, 0)
 
@@ -571,7 +571,7 @@ def update():
 	screen.fill((0,0,0))
 
 	bg.draw_map(screen)
-	
+
 	player_img = player_img1
 	player_img.set_colorkey((255, 0, 208))
 	player_rect.topleft = (playerx-32, playery)
@@ -818,11 +818,11 @@ def titlescreen():
 
 	maxcursor = 1
 
+	#loadLevel(0)
 	screen.fill((255,255,255))
 	bg.draw_map(screen)
 	map_below.draw_map(screen)
 	map_below2.draw_map(screen)
-	dialogue()
 	map_above.draw_map(screen)
 	if level_id == 0:
 		if offsetX >= map_below.map_surface.get_size()[0]-192:
